@@ -13,6 +13,8 @@ class Post extends Model
         'title',
         'description',
         'status',
+        'create_user_id',
+        'updated_user_id'
     ];
 
 }

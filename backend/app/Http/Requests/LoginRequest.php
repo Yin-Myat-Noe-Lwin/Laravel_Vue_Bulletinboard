@@ -2,10 +2,9 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class PostUpdateRequest extends FormRequest
+class LoginRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,14 +21,9 @@ class PostUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        $postId = $this->route('post')->id;
-
         return [
-            'title' => ['required', 'string', Rule::unique('posts', 'title')->whereNull('deleted_at')->ignore($postId)],
-            'description' => ['required'],
-            'status' => ['required', 'in:0,1'],
-            'create_user_id' => 'required',
-            'updated_user_id' => 'required',
+            'email' => 'required|email',
+            'password' => 'required'
         ];
     }
 }

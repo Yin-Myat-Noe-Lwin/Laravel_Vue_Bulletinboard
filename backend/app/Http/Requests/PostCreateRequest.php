@@ -26,7 +26,7 @@ class PostCreateRequest extends FormRequest
             'description' => ['required'],
             'status' => ['required', 'in:0,1'],
             'create_user_id' => 'required',
-            'update_user_id' => 'required',
+            'updated_user_id' => 'required',
         ];
     }
 }
