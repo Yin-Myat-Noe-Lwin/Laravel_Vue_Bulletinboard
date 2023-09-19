@@ -15,9 +15,17 @@ class LoginController extends Controller
     {
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['error' => 'Phone number or password is incorrect!'], 422);
+        if (!$user) {
+            return response()->json(['error' => 'Email does not exist!'], 422);
         }
+
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json(['error' => 'Password is incorrect!'], 422);
+        }
+
+        // if (!$user || !Hash::check($request->password, $user->password)) {
+        //     return response()->json(['error' => 'Phone number or password is incorrect!'], 422);
+        // }
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
