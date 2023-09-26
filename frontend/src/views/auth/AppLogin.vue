@@ -45,7 +45,6 @@
         alertError.value = error.response.data.error;
       }
     }
-
     console.error('Login failed:', error);
   }
   }

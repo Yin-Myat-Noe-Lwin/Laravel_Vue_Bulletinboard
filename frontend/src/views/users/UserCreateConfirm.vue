@@ -1,108 +1,81 @@
 <script setup>
+import { ref, computed} from 'vue';
+import axiosInstance from '@/axios.js';
+import { useRouter } from 'vue-router';
+import { useStore } from 'vuex';
 
-  import { ref } from 'vue';
-  import axiosInstance from '@/axios.js';
-  import { useRouter } from 'vue-router';
-  import { useStore } from 'vuex';
+const router = new useRouter();
 
-  const user = JSON.parse(localStorage.getItem('user'));
+const store = useStore();
+const userData = store.getters.getUserData;
+console.log(userData)
 
-  const formData = ref({
-    name: '',
-    email: '',
-    password: '',
-    phone: '',
-    address: '',
-    dob: '',
-    type: '1',
-    profile: null,
+const formData = ref({
+    name: userData.name,
+    email: userData.email,
+    password: userData.password,
+    password_confirmation: userData.password_confirmation,
+    phone: userData.phone,
+    address: userData.address,
+    dob: userData.dob,
+    type: userData.type,
+    profile: null ,
     flg: 'unconfirm',
-    create_user_id: user.id,
-    updated_user_id: user.id
-  });
+    create_user_id: userData.create_user_id,
+    updated_user_id: userData.updated_user_id
+})
 
-  const nameError = ref('');
+const dataURItoBlob = (dataURI) => {
+  const byteString = atob(dataURI.split(',')[1]);
+  const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+  const ab = new ArrayBuffer(byteString.length);
+  const ia = new Uint8Array(ab);
 
-  const emailError = ref('');
-
-  const passwordError = ref('');
-
-  const passwordConfirmationError = ref('');
-
-  const profileError = ref('');
-
-  const router = useRouter();
-
-  const store = useStore();
-
-  function handleImageUpload(event) {
-    formData.value.profile = event.target.files[0];
-    const imgSize = event.target.files[0].size;
-
-    const maxSize = 2 * 1024 * 1024;
-    if (imgSize > maxSize) {
-      profileError.value = "Image file size must be less than 2MB"
-      formData.value.profile = '';
-    }
-    else {
-      const imgFile = event.target.files[0];
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        localStorage.setItem('file', e.target.result);
-      };
-      reader.readAsDataURL(imgFile);
-    }
+  for (let i = 0; i < byteString.length; i++) {
+    ia[i] = byteString.charCodeAt(i);
   }
 
-  async function createUser() {
-    try{
+  return new Blob([ab], { type: mimeString });
+};
+
+const profileDataURL = localStorage.getItem('file')
+const blobFile =  dataURItoBlob(profileDataURL)
+const imageFile = new File([blobFile], 'image.jpg', {
+    type: 'image/jpeg',
+});
+formData.value.profile = imageFile
+console.log(imageFile)
+
+async function confirmCreateUser () {
+  try{
+      formData.value.flg = 'confirm';
       const response = await axiosInstance.post('/users', formData.value, {headers: {'Content-Type': 'multipart/form-data'}});
-      nameError.value = '';
-      emailError.value = '';
-      passwordError.value = '';
-      passwordConfirmationError.value = '';
-      profileError.value = '';
-      console.log('Created user successfully!', response.data);
-      store.dispatch('updateUserData', formData);
-      router.push('/UserCreateConfirm');
+      console.log('Confirm user creation successfully!', response.data);
+      router.push('/UserList');
     }catch (error) {
-      profileError.value = '';
-      if(error.response){
-        const { errors } = error.response.data;
-        if(errors) {
-          if (errors.name) {
-            nameError.value = errors.name[0] || '';
-        }
-          if (errors.email) {
-              emailError.value = errors.email[0] || '';
-          }
-          if (errors.password) {
-              passwordError.value = errors.password[0] || '';
-          }
-          if (errors.password_confirmation) {
-              passwordConfirmationError.value = errors.password_confirmation[0] || '';
-          }
-          if (errors.profile) {
-              profileError.value = errors.profile[0] || '';
-          }
-        }
-      }
       console.error(error);
     }
-  }
+}
+
+function cancelCreateUser () {
+  localStorage.removeItem('userData');
+}
+
+const userType = computed(() => {
+  return formData.value.type === 0 ? 'Admin' : 'User';
+});
 
 </script>
-
 
 <template>
   <div class="container container-main my-5">
     <div class="d-flex justify-content-center align-items-center">
       <div class="card custom-card" style="width:700px">
       <div class="card-header card-header-bg">
-         Register
+         Register Confirm
       </div>
       <div class="card-body mt-5">
-        <form @submit.prevent="createUser" enctype="multipart/form-data" >
+        <form @submit.prevent="confirmCreateUser" enctype="multipart/form-data" >
           <div class="mb-3 row visually-hidden">
             <label for="flg" class="text-right-label col-12 col-md-4 col-form-label">Confirm flag<span class="text-danger">*</span></label>
             <div class="col-12 col-md-8">
@@ -119,8 +92,7 @@
             <div class="col-12 col-md-8">
               <div class="row">
                 <div class="col-12 col-md-10">
-                  <input v-model="formData.name" type="text" class="form-control" id="name" name="name">
-                  <div v-if="nameError" class="text-danger">{{ nameError }}</div>
+                  <input v-model="formData.name" type="text" class="form-control" id="name" name="name" disabled >
                 </div>
                 <div class="col-12 col-md-2"></div>
               </div>
@@ -131,8 +103,7 @@
             <div class="col-12 col-md-8">
               <div class="row">
                 <div class="col-12 col-md-10">
-                  <input v-model="formData.email" type="text" class="form-control" id="email" name="email">
-                  <div v-if="emailError" class="text-danger">{{ emailError }}</div>
+                  <input v-model="formData.email" type="text" class="form-control" id="email" name="email" disabled>
                 </div>
                 <div class="col-12 col-md-2"></div>
               </div>
@@ -143,8 +114,7 @@
             <div class="col-12 col-md-8">
               <div class="row">
                 <div class="col-12 col-md-10">
-                  <input v-model="formData.password" type="password" class="form-control" id="password" name="password">
-                  <div v-if="passwordError" class="text-danger">{{ passwordError }}</div>
+                  <input v-model="formData.password" type="password" class="form-control" id="password" name="password" disabled>
                 </div>
                 <div class="col-12 col-md-2"></div>
               </div>
@@ -155,8 +125,7 @@
             <div class="col-12 col-md-8">
               <div class="row">
                 <div class="col-12 col-md-10">
-                  <input v-model="formData.password_confirmation" type="password" class="form-control" id="password_confirmation" name="password_confirmation">
-                  <div v-if="passwordConfirmationError" class="text-danger">{{ passwordConfirmationError }}</div>
+                  <input v-model="formData.password_confirmation" type="password" class="form-control" id="password_confirmation" name="password_confirmation" disabled>
                 </div>
                 <div class="col-12 col-md-2"></div>
               </div>
@@ -167,10 +136,7 @@
             <div class="col-12 col-md-8">
               <div class="row">
                 <div class="col-12 col-md-10">
-                  <select  v-model="formData.type"  class="form-select" aria-label="Type">
-                    <option value="0">Admin</option>
-                    <option value="1">User</option>
-                  </select>
+                  <input v-model="userType" type="text" class="form-control" id="type" name="type" disabled>
                 </div>
                 <div class="col-12 col-md-2"></div>
               </div>
@@ -181,7 +147,7 @@
             <div class="col-12 col-md-8">
               <div class="row">
                 <div class="col-12 col-md-10">
-                  <input v-model="formData.phone" type="text" class="form-control" id="phone" name="phone">
+                  <input v-model="formData.phone" type="text" class="form-control" id="phone" name="phone" disabled>
                 </div>
                 <div class="col-12 col-md-2"></div>
               </div>
@@ -192,7 +158,7 @@
             <div class="col-12 col-md-8">
               <div class="row">
                 <div class="col-12 col-md-10">
-                  <input v-model="formData.dob" type="date" class="form-control" id="dob" name="dob">
+                  <input v-model="formData.dob" type="date" class="form-control" id="dob" name="dob" disabled>
                 </div>
                 <div class="col-12 col-md-2"></div>
               </div>
@@ -203,7 +169,7 @@
             <div class="col-12 col-md-8">
               <div class="row">
                 <div class="col-12 col-md-10">
-                  <input v-model="formData.address" type="text" class="form-control" id="address" name="address">
+                  <input v-model="formData.address" type="text" class="form-control" id="address" name="address" disabled>
                 </div>
                 <div class="col-12 col-md-2"></div>
               </div>
@@ -214,8 +180,7 @@
             <div class="col-12 col-md-8">
               <div class="row">
                 <div class="col-12 col-md-10">
-                  <input class="form-control" type="file" id="profile" name="profile" @change="handleImageUpload">
-                  <div v-if="profileError" class="text-danger">{{ profileError }}</div>
+                  <img :src="profileDataURL"  class="img-fluid" alt="user-img" style="width:150px; height:150px" />
                 </div>
                 <div class="col-12 col-md-2"></div>
               </div>
@@ -226,7 +191,7 @@
             <div class="col-12 col-md-8">
               <div class="row">
                 <div class="col-12 col-md-10">
-                  <input v-model="formData.create_user_id" class="form-control" id="create_user_id" name="create_user_id" >
+                  <input v-model="formData.create_user_id" class="form-control" id="create_user_id" name="create_user_id" disabled>
                 </div>
                 <div class="col-12 col-md-2"></div>
               </div>
@@ -237,7 +202,7 @@
             <div class="col-12 col-md-8">
               <div class="row">
                 <div class="col-12 col-md-10">
-                  <input v-model="formData.updated_user_id" class="form-control" id="updated_user_id" name="updated_user_id">
+                  <input v-model="formData.updated_user_id" class="form-control" id="updated_user_id" name="updated_user_id" disabled>
                 </div>
                 <div class="col-12 col-md-2"></div>
               </div>
@@ -246,8 +211,8 @@
           <div class="mb-3 row">
             <div class="col-12 col-md-4"></div>
             <div class="col-12 col-md-8">
-              <button type="submit" class="btn btn-primary">Register</button>
-              <button type="button" class="btn btn-secondary mx-3">Clear</button>
+              <button type="submit" class="btn btn-primary" @click="confirmCreateUser">Confirm</button>
+              <button type="button" class="btn btn-secondary mx-3" @click="cancelCreateUser">Cancel</button>
             </div>
           </div>
         </form>

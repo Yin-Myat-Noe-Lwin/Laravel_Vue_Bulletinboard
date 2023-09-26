@@ -1,12 +1,12 @@
 <script setup>
 
-  import { ref } from 'vue';
+  import { ref, onMounted } from 'vue';
+  import axiosInstance from '@/axios.js';
 
-   const postList = [
-                    { id: 1, title: 'Title1', description: 'Description1', status: 'Active', posted_user: 'Leona',  posted_at: '2023/09/09', updated_user: 'Leona' , updated_at: '2023/09/09'},
-                    { id: 2, title: 'Title2', description: 'Description2', status: 'Active', posted_user: 'Leona',  posted_at: '2023/09/13' , updated_user: 'Leona' , updated_at: '2023/09/13'},
-                    { id: 3, title: 'Title3', description: 'Description3', status: 'Active', posted_user: 'Monica',  posted_at: '2023/09/13' ,  updated_user: 'Monica' , updated_at: '2023/09/13'},
-                  ]
+  const formatDate = (datetime) => {
+    const date = new Date(datetime);
+    return date.toLocaleDateString();
+  };
 
   const postDetail = ref({});
 
@@ -17,24 +17,58 @@
   const showModalDelete = ref(false);
 
   const showPostDetail = (post) => {
-  postDetail.value = post;
-  showModalPostDetail.value = true;
+    postDetail.value = post;
+    showModalPostDetail.value = true;
 };
 
-const closePostDetail = () => {
-  postDetail.value = null;
-  showModalPostDetail.value = false;
-};
+  const closePostDetail = () => {
+    postDetail.value = null;
+    showModalPostDetail.value = false;
+  };
 
   const showDeleteConfirmation = (post) => {
-  selectedPost.value = post;
-  showModalDelete.value = true;
-};
+    selectedPost.value = post;
+    showModalDelete.value = true;
+  };
 
   const closeDeleteConfirmation = () => {
     selectedPost.value = null;
     showModalDelete.value = false;
   };
+
+  const deletePost = (postID) => {
+  alert("deleted");
+  axiosInstance
+    .delete(`/posts/${postID}`)
+    .then((response) => {
+      console.log("post deleted successfully");
+      closeDeleteConfirmation()
+      window.location.reload()
+    })
+    .catch((error) => {
+      alert("error");
+      console.error(error);
+    });
+};
+
+  const posts = ref([]);
+
+  const fetchPosts = () => {
+    axiosInstance
+      .get('/posts')
+      .then((response) => {
+        posts.value = response.data.posts;
+        console.log(response)
+      })
+      .catch((error) => {
+        alert("error")
+      console.error(error);
+      });
+  };
+
+  onMounted(() => {
+    fetchPosts();
+  });
 
 </script>
 
@@ -44,7 +78,7 @@ const closePostDetail = () => {
       <div class="card-header card-header-bg">
         Post List
       </div>
-      <div class="card-body">
+      <div class="card-body p-4">
         <div class="row">
           <div class="col-12 col-md-6">
             <div class="row">
@@ -87,13 +121,15 @@ const closePostDetail = () => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="post in postList" :key="post.id">
+            <tr v-for="post in posts" :key="post.id">
               <td class="text-success" data-bs-toggle="modal" data-bs-target="#postDetailBtn" @click="showPostDetail(post)">{{ post.title }}</td>
               <td>{{ post.description }}</td>
               <td>{{ post.posted_user }}</td>
-              <td>{{ post.posted_at }}</td>
+              <td>{{ formatDate(post.created_at) }}</td>
               <td>
-                <button type="button" class="btn btn-primary">Edit</button>
+                <router-link :to="'/PostEdit/' + post.id">
+                  <button type="button" class="btn btn-primary">Edit</button>
+                </router-link>
                 <button
                   type="button"
                   class="btn btn-danger mx-2"
@@ -181,7 +217,7 @@ const closePostDetail = () => {
                 >
                   Close
                 </button>
-                <button type="button" class="btn btn-danger">Delete</button>
+                <button type="button" class="btn btn-danger" @click="deletePost(selectedPost.id)">Delete</button>
               </div>
             </div>
           </div>
@@ -239,7 +275,7 @@ const closePostDetail = () => {
                     <p>Created Date</p>
                   </div>
                   <div class="col-12 col-md-7">
-                    <p class="fst-italic text-danger">{{ postDetail.posted_at }}</p>
+                    <p class="fst-italic text-danger">{{ formatDate(postDetail.created_at) }}</p>
                   </div>
                 </div>
                 <div class="row">
@@ -255,7 +291,7 @@ const closePostDetail = () => {
                     <p>Updated Date</p>
                   </div>
                   <div class="col-12 col-md-7">
-                    <p class="fst-italic text-danger">{{ postDetail.updated_at }}</p>
+                    <p class="fst-italic text-danger">{{ formatDate(postDetail.updated_at) }}</p>
                   </div>
                 </div>
                 <div class="row">

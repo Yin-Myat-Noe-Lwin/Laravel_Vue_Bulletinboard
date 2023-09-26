@@ -18,10 +18,11 @@ use App\Http\Controllers\UserController;
 |
 */
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/users/{user}/{profile}', [UserController::class, 'getUserImage']);
     Route::get('/users', [UserController::class, 'index']);
     Route::get('/users/{user}', [UserController::class, 'show']);
     Route::post('/users', [UserController::class, 'store']);
-    Route::put('/users/{user}', [UserController::class, 'update']);
+    Route::post('/users/{user}', [UserController::class, 'update']);
     Route::delete('/users/{user}', [UserController::class, 'destroy']);
 
     Route::get('/export', [UserController::class, 'export']);
@@ -33,7 +34,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/posts/{post}', [PostController::class, 'destroy']);
 
     Route::post('/changePassword', [PasswordController::class, 'changePassword']);
-
     Route::post('/logout', [LoginController::class, 'logout']);
 });
 

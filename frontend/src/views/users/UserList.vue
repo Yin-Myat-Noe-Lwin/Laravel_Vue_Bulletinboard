@@ -1,62 +1,32 @@
 <script setup>
 
-import { ref } from 'vue';
-// import axios from 'axios';
-// import { onMounted } from 'vue';
-import User1Image from '@/assets/images/user-1.jpg';
+import { ref, onMounted } from 'vue';
+import axiosInstance from '@/axios.js';
 
-const userList = [
-  {
-    id: 1,
-    name: "Leona",
-    email: "leona@gmail.com",
-    created_user: "Leona",
-    type: "Admin",
-    phone: "09123456789",
-    dob: "2000/09/09",
-    address: "Sagaing",
-    created_at: "2023/09/09",
-    updated_user: "Leona",
-    updated_at: "2023/09/09",
-  },
-  {
-    id: 2,
-    name: "Monica",
-    email: "monica@gmail.com",
-    created_user: "Leona",
-    type: "User",
-    phone: "09000000000",
-    dob: "2001/08/09",
-    address: "Yangon",
-    created_at: "2023/09/09",
-    updated_user: "Leona",
-    updated_at: "2023/09/09",
-  },
-  {
-    id: 3,
-    name: "Kylie",
-    email: "kylie@gmail.com",
-    created_user: "Kylie",
-    type: "Admin",
-    phone: "09111111111",
-    dob: "2001/02/09",
-    address: "Mawlamyaing",
-    created_at: "2023/09/09",
-    updated_user: "Leona",
-    updated_at: "2023/09/09",
-  },
-];
+const profileImageUrl = ref(null);
 
-// const userList = ref([]);
+const formatDate = (datetime) => {
+  const date = new Date(datetime);
+  return date.toLocaleDateString();
+};
 
-// onMounted(async () => {
-//   try {
-//     const response = await axios.get('/users'); // Replace with your API endpoint
-//     userList.value = response.data;
-//   } catch (error) {
-//     console.error(error);
-//   }
-// });
+const users = ref([]);
+
+const fetchUsers = () => {
+  axiosInstance
+    .get('/users')
+    .then((response) => {
+      users.value = response.data.users;
+    })
+    .catch((error) => {
+      alert("error")
+     console.error(error);
+    });
+};
+
+onMounted(() => {
+  fetchUsers();
+});
 
 const userDetail = ref({});
 
@@ -66,9 +36,19 @@ const showModalUserDetail = ref(false);
 
 const showModalDelete = ref(false);
 
-const showUserDetail = (user) => {
+const showUserDetail = async (user) => {
   userDetail.value = user;
   showModalUserDetail.value = true;
+  try {
+    axiosInstance.get(`/users/${user.id}/${user.profile}`, { responseType: 'blob' })
+      .then((response) => {
+        const blob = new Blob([response.data], { type: response.headers['content-type'] });
+        const imageUrl = URL.createObjectURL(blob);
+        profileImageUrl.value = imageUrl;
+      })
+  } catch (error) {
+    console.error('Error fetching profile image:', error);
+  }
 };
 
 const closeUerDetail = () => {
@@ -86,13 +66,28 @@ const closeDeleteConfirmation = () => {
   showModalDelete.value = false;
 };
 
+const deleteUser = (userID) => {
+  alert("deleted");
+  axiosInstance
+    .delete(`/users/${userID}`)
+    .then((response) => {
+      console.log("user deleted successfully");
+      closeDeleteConfirmation()
+      window.location.reload()
+    })
+    .catch((error) => {
+      alert("error");
+      console.error(error);
+    });
+};
+
 </script>
 
 <template>
   <div class="container container-main my-5">
     <div class="card custom-card">
       <div class="card-header card-header-bg">User List</div>
-      <div class="card-body">
+      <div class="card-body p-4">
         <div class="row">
           <div class="col-12 col-md-10">
             <div class="row">
@@ -187,23 +182,23 @@ const closeDeleteConfirmation = () => {
               <th scope="col">Phone</th>
               <th scope="col">Date of Birth</th>
               <th scope="col">Address</th>
-              <th scope="col">Created_at</th>
-              <th scope="col">Updated_at</th>
+              <th scope="col">Created_date</th>
+              <th scope="col">Updated_date</th>
               <th scope="col">Operation</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="user in userList" :key="user.id">
+            <tr v-for="user in users" :key="user.id">
               <th scope="row">{{ user.id }}</th>
               <td class="text-success" data-bs-toggle="modal" data-bs-target="#userDetailBtn" @click="showUserDetail(user)">{{ user.name }}</td>
               <td>{{ user.email }}</td>
-              <td>{{ user.created_user }}</td>
-              <td>{{ user.type }}</td>
+              <td>{{ user.create_user_id }}</td>
+              <td>{{ user.type === "1" ? 'User' : 'Admin' }}</td>
               <td>{{ user.phone }}</td>
               <td>{{ user.dob }}</td>
               <td>{{ user.address }}</td>
-              <td>{{ user.created_at }}</td>
-              <td>{{ user.updated_at }}</td>
+              <td>{{ formatDate(user.created_at) }}</td>
+              <td>{{ formatDate(user.updated_at) }}</td>
               <td>
                 <button
                   type="button"
@@ -271,7 +266,7 @@ const closeDeleteConfirmation = () => {
                     <p class="text-start mx-3">Type</p>
                   </div>
                   <div class="col-12 col-md-6">
-                    <p class="text-start">{{ selectedUser.type }}</p>
+                    <p class="text-start">{{ selectedUser.type === "1" ? 'User' : 'Admin' }}</p>
                   </div>
                 </div>
                 <div class="row mb-1">
@@ -316,7 +311,7 @@ const closeDeleteConfirmation = () => {
                 >
                   Close
                 </button>
-                <button type="button" class="btn btn-danger">Delete</button>
+                <button type="button" class="btn btn-danger" @click="deleteUser(selectedUser.id)">Delete</button>
               </div>
             </div>
           </div>
@@ -348,7 +343,7 @@ const closeDeleteConfirmation = () => {
                 <div class="row p-2">
                   <div class="col-12 col-md-4">
                     <div class="d-flex justify-content-center align-items-center">
-                      <img :src="User1Image" class="img-fluid" alt="user-img" style="width:150px; height:150px" />
+                      <img :src="profileImageUrl" class="img-fluid" alt="user-img" style="width:150px; height:150px" />
                     </div>
                   </div>
                   <div class="col-12 col-md-8">
@@ -365,7 +360,7 @@ const closeDeleteConfirmation = () => {
                         <p>Type</p>
                       </div>
                       <div class="col-12 col-md-6">
-                        <p>{{ userDetail.type }}</p>
+                        <p>{{ userDetail.type === "1" ? 'User' : 'Admin' }}</p>
                       </div>
                     </div>
                     <div class="row">
@@ -405,7 +400,7 @@ const closeDeleteConfirmation = () => {
                         <p>Created Date</p>
                       </div>
                       <div class="col-12 col-md-6">
-                        <p>{{ userDetail.created_at  }}</p>
+                        <p>{{ formatDate(userDetail.created_at) }}</p>
                       </div>
                     </div>
                     <div class="row">
@@ -421,7 +416,7 @@ const closeDeleteConfirmation = () => {
                         <p>Updated Date</p>
                       </div>
                       <div class="col-12 col-md-6">
-                        <p>{{ userDetail.updated_at  }}</p>
+                        <p>{{ formatDate(userDetail.updated_at) }}</p>
                       </div>
                     </div>
                     <div class="row">

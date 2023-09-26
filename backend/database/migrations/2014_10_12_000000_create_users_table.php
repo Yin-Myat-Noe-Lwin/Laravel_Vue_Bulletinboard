@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('type',1)->default(1);
             $table->string('phone',20)->nullable();
             $table->string('address')->nullable();
-            $table->string('dob')->nullable();
+            $table->date('dob')->nullable();
             $table->unsignedBigInteger('create_user_id');
             $table->foreign('create_user_id')->references('id')->on('users');
             $table->unsignedBigInteger('updated_user_id');

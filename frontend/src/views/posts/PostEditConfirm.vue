@@ -1,70 +1,49 @@
 <script setup>
-  import { ref } from 'vue';
-  import axiosInstance from '@/axios.js';
-  import { useRouter } from 'vue-router';
+
   import { useStore } from 'vuex';
-
-  const user = JSON.parse(localStorage.getItem('user'));
-
-  const router = useRouter();
+  import { ref } from 'vue';
+  import { useRoute,useRouter } from 'vue-router';
+  import axiosInstance from '@/axios.js';
 
   const store = useStore();
+  const postEditData = store.getters.getPostEditData;
+  console.log(postEditData)
 
   const formData = ref({
-    title: '',
-    description: '',
-    status: 1,
+    title: postEditData.title,
+    description: postEditData.description,
+    status: postEditData.status,
     flg: 'unconfirm',
-    create_user_id: user.id,
-    updated_user_id: user.id
-  });
+    create_user_id: postEditData.create_user_id,
+    updated_user_id: postEditData.updated_user_id
+  })
 
-  console.log(formData)
+  const router = new useRouter();
 
-  const titleError = ref('');
+  const route = new useRoute();
 
-  const descriptionError = ref('');
-
-  const statusError = ref('');
-
-  async function createPost() {
+  async function confirmEditPost () {
     try{
-      const response = await axiosInstance.post('/posts', formData.value);
-      titleError.value = '';
-      descriptionError.value = '';
-      statusError.value = '';
-      console.log('Created post successfully!', response.data);
-      store.dispatch('updatePostData', formData);
-      router.push('/PostCreateConfirm');
+      formData.value.flg = 'confirm';
+      const response = await axiosInstance.put(`/posts/${route.params.postID}`, formData.value);
+      console.log('Confirm post edit successfully!', response.data);
+      router.push('/PostList')
     }catch (error) {
-      if(error.response){
-        const { errors } = error.response.data;
-        if(errors) {
-          if (errors.title) {
-            titleError.value = errors.title[0] || '';
-        }
-          if (errors.description) {
-              descriptionError.value = errors.description[0] || '';
-          }
-          if (errors.status) {
-              statusError.value = errors.status[0] || '';
-          }
-        }
-      }
       console.error(error);
     }
   }
+
 </script>
 
 <template>
   <div class="container container-main my-5">
     <div class="d-flex justify-content-center align-items-center">
-      <div class="card custom-card" style="width: 700px">
+      <div class="card custom-card" style="width:700px">
       <div class="card-header card-header-bg">
         Create Post
       </div>
       <div class="card-body mt-5">
-        <form @submit.prevent="createPost">
+        <form @submit.prevent="confirmEditPost">
           <div class="mb-3 row visually-hidden">
             <label for="flg" class="text-right-label col-12 col-md-4 col-form-label">Confirm flag<span class="text-danger">*</span></label>
             <div class="col-12 col-md-8">
@@ -81,32 +60,31 @@
             <div class="col-12 col-md-8">
               <div class="row">
                 <div class="col-12 col-md-10">
-                  <input v-model="formData.title" type="text" class="form-control" id="title" name="title">
-                  <div v-if="titleError" class="text-danger">{{ titleError }}</div>
+                  <input v-model="formData.title" type="text" class="form-control" id="title" name="title" disabled >
                 </div>
                 <div class="col-12 col-md-2"></div>
               </div>
             </div>
           </div>
           <div class="mb-3 row">
-            <label for="description" class="text-right-label col-12 col-md-4 col-form-label">Description<span class="text-danger">*</span></label>
+            <label for="email" class="text-right-label col-12 col-md-4 col-form-label">Description<span class="text-danger">*</span></label>
             <div class="col-12 col-md-8">
               <div class="row">
                 <div class="col-12 col-md-10">
-                  <textarea  v-model="formData.description"  class="form-control" id="description" name="description" rows="3"></textarea>
-                  <div v-if="descriptionError" class="text-danger">{{ descriptionError }}</div>
+                  <input v-model="formData.description" type="text" class="form-control" id="description" name="description" disabled>
                 </div>
                 <div class="col-12 col-md-2"></div>
               </div>
             </div>
           </div>
-          <div class="mb-3 row visually-hidden">
+          <div class="mb-3 row">
             <label for="status" class="text-right-label col-12 col-md-4 col-form-label">Status<span class="text-danger">*</span></label>
             <div class="col-12 col-md-8">
               <div class="row">
-                <div class="col-12 col-md-10">
-                  <input v-model="formData.status" type="text" class="form-control" id="status" name="status">
-                  <div v-if="statusError" class="text-danger">{{ statusError }}</div>
+                <div class="col-12 col-md-10 mt-2">
+                  <div class="form-check form-switch">
+                    <input v-model="formData.status" class="form-check-input" type="checkbox" id="status" name="status"  true-value="1" false-value="0" disabled>
+                  </div>
                 </div>
                 <div class="col-12 col-md-2"></div>
               </div>
@@ -117,18 +95,18 @@
             <div class="col-12 col-md-8">
               <div class="row">
                 <div class="col-12 col-md-10">
-                  <input v-model="formData.create_user_id" class="form-control" id="create_user_id" name="create_user_id" >
+                  <input v-model="formData.create_user_id" class="form-control" id="create_user_id" name="create_user_id" disabled>
                 </div>
                 <div class="col-12 col-md-2"></div>
               </div>
             </div>
           </div>
           <div class="mb-3 row visually-hidden">
-            <label for="create_user_id" class="text-right-label col-12 col-md-4 col-form-label">Updated User</label>
+            <label for="updated_user_id" class="text-right-label col-12 col-md-4 col-form-label">Updated User</label>
             <div class="col-12 col-md-8">
               <div class="row">
                 <div class="col-12 col-md-10">
-                  <input v-model="formData.updated_user_id" class="form-control" id="updated_user_id" name="updated_user_id" >
+                  <input v-model="formData.updated_user_id" class="form-control" id="updated_user_id" name="updated_user_id" disabled>
                 </div>
                 <div class="col-12 col-md-2"></div>
               </div>
@@ -137,8 +115,8 @@
           <div class="mb-3 row">
             <div class="col-12 col-md-4"></div>
             <div class="col-12 col-md-8">
-              <button type="submit" class="btn btn-primary">Create</button>
-              <button type="button" class="btn btn-secondary mx-3">Clear</button>
+              <button type="submit" class="btn btn-primary" @click="confirmCreateUser">Confirm</button>
+              <button type="button" class="btn btn-secondary mx-3" @click="cancelCreateUser">Cancel</button>
             </div>
           </div>
         </form>

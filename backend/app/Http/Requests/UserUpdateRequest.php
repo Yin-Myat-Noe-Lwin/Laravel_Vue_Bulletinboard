@@ -28,7 +28,6 @@ class UserUpdateRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:40', Rule::unique('users', 'name')->whereNull('deleted_at')->ignore($userId)],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->whereNull('deleted_at')->ignore($userId)],
-            'password' => ['required','string',Password::min(5),'confirmed' ],
             'profile' => 'nullable|mimes:jpeg,png,jpg,jfif',
             'type' => ['required', 'in:0,1'],
             'phone' => ['nullable', 'regex:/^(09-|01-|\+?959-)\d{9}$/'],

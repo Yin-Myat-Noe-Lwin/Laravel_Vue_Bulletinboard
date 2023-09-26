@@ -3,11 +3,14 @@ import NotFound from '../views/common/NotFound.vue'
 import HomeView from '../views/HomeView.vue'
 import UserList from '../views/users/UserList.vue'
 import UserCreate from '../views/users/UserCreate.vue'
+import UserCreateConfirm from '../views/users/UserCreateConfirm.vue'
 import UserProfile from '../views/users/UserProfile.vue'
 import UserEdit from '../views/users/UserEdit.vue'
 import PostList from '../views/posts/PostList.vue'
 import PostCreate from '../views/posts/PostCreate.vue'
+import PostCreateConfirm from '../views/posts/PostCreateConfirm.vue'
 import PostEdit from '../views/posts/PostEdit.vue'
+import PostEditConfirm from '../views/posts/PostEditConfirm.vue'
 import ChangePassword from '../views/auth/ChangePassword.vue'
 import ResetPassword from '../views/auth/ResetPassword.vue'
 import AppRegister from '../views/auth/AppRegister.vue'
@@ -38,6 +41,11 @@ const router = createRouter({
       component: UserCreate
     },
     {
+      path: '/UserCreateConfirm',
+      name: 'UserCreateConfirm',
+      component: UserCreateConfirm
+    },
+    {
       path: '/UserProfile',
       name: 'UserProfile',
       component: UserProfile
@@ -58,9 +66,19 @@ const router = createRouter({
       component: PostCreate
     },
     {
-      path: '/PostEdit',
+      path: '/PostCreateConfirm',
+      name: 'PostCreateConfirm',
+      component: PostCreateConfirm
+    },
+    {
+      path: '/PostEdit/:postID',
       name: 'PostEdit',
       component: PostEdit
+    },
+    {
+      path: '/PostEditConfirm/:postID',
+      name: 'PostEditConfirm',
+      component: PostEditConfirm
     },
     {
       path: '/ChangePassword',

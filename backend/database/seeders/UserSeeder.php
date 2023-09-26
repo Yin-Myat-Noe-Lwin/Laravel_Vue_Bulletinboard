@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
@@ -21,7 +22,7 @@ class UserSeeder extends Seeder
             'type' => 0,
             'phone' => '09-123456789',
             'address' => 'Yangon',
-            'dob' => '01-01-2000',
+            'dob' => Carbon::now(),
             'create_user_id' => 1,
             'updated_user_id' => 1
         ]);
@@ -33,7 +34,7 @@ class UserSeeder extends Seeder
             'type' => 0,
             'phone' => '09-000000000',
             'address' => 'Yangon',
-            'dob' => '01-01-1996',
+            'dob' => Carbon::now(),
             'create_user_id' => 2 ,
             'updated_user_id' => 2
         ]);
@@ -45,7 +46,7 @@ class UserSeeder extends Seeder
             'type' => 1,
             'phone' => '09-111111111',
             'address' => 'Bago',
-            'dob' => '01-01-2002',
+            'dob' => Carbon::now(),
             'create_user_id' => 3 ,
             'updated_user_id' => 3
         ]);
@@ -57,7 +58,7 @@ class UserSeeder extends Seeder
             'type' => 1,
             'phone' => '09-222222222',
             'address' => 'Sagaing',
-            'dob' => '01-01-1999',
+            'dob' => Carbon::now(),
             'create_user_id' => 4 ,
             'updated_user_id' => 4
         ]);

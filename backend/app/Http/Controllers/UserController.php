@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use App\Exports\UsersExport;
 use Illuminate\Http\Request;
 use App\Http\Resources\UserResource;
@@ -20,7 +21,7 @@ class UserController extends Controller
     public function index()
     {
         $users = User::all();
-        return UserResource::collection($users);
+        return response()->json(['users' => UserResource::collection($users)]);
     }
 
     /**
@@ -28,23 +29,26 @@ class UserController extends Controller
      */
     public function store(UserCreateRequest $request)
     {
-        $user = User::create($request->all());
+        if($request->flg == 'confirm'){
 
-        $path = storage_path('app/public/images/');
-        if (!is_dir($path)) {
-            mkdir($path, 0777, true);
+            $user = User::create($request->all());
+
+            $path = storage_path('app/public/images/');
+            if (!is_dir($path)) {
+                mkdir($path, 0777, true);
+            }
+
+            if ($request->hasFile('profile')) {
+                $file = $request->file('profile');
+                $randomFileName = Str::random(40);
+                $fileName = $randomFileName. '.'. $file->getClientOriginalExtension();
+                $file->storeAs('public/images', $fileName);
+                $user->update(['profile' => $fileName]);
+            }
+            return response()->json(['message' => 'User created successfully','user' =>  new UserResource($user)]);
         }
 
-        if ($request->hasFile('profile')) {
-            $file = $request->file('profile');
-            $fileName = 'user-' . $user->id. '.'. $file->getClientOriginalExtension();
-            info($file);
-            info($fileName);
-            $file->storeAs('public/images', $fileName);
-            $user->update(['profile' => $fileName]);
-        }
-
-        return response()->json(['message' => 'User created successfully','user' =>  new UserResource($user)]);
+        return response()->json(['message' => 'User Confirmed successfully']);
     }
 
     /**
@@ -52,7 +56,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        return new UserResource($user);
+        return response()->json(['user' => new UserResource($user) ]);
     }
 
     /**
@@ -61,11 +65,12 @@ class UserController extends Controller
     public function update(UserUpdateRequest $request, User $user)
     {
         if ($request->hasFile('profile')) {
-            Storage::delete('public/images/' . $user->profile);
-            $file = $request->file('profile');
-            $fileName = 'user-' . $user->id. '.'. $file->getClientOriginalExtension();
-            $file->storeAs('public/images', $fileName);
-            $user->update(['image' => $fileName]);
+                Storage::delete('public/images/' . $user->profile);
+                $file = $request->file('profile');
+                $randomFileName = Str::random(40);
+                $fileName = $randomFileName. '.'. $file->getClientOriginalExtension();
+                $file->storeAs('public/images', $fileName);
+                $user->update(['profile' => $fileName]);
         }
 
         $user->update(Arr::except($request->except('profile'), ['profile']));
@@ -91,4 +96,17 @@ class UserController extends Controller
     {
         return Excel::download(new UsersExport, 'users.xlsx');
     }
+
+    public function getUserImage(User $user)
+    {
+        $path = 'public/images/' . $user->profile;
+        $storagePath = storage_path('app/' . $path);
+
+        if (file_exists($storagePath)) {
+            return response()->file($storagePath);
+        } else {
+            return response()->json(['error' => 'Image not found'], 404);
+        }
+    }
+
 }

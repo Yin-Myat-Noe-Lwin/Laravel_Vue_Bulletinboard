@@ -16,7 +16,7 @@ class PostController extends Controller
     public function index()
     {
         $posts = Post::all();
-        return PostResource::collection($posts);
+        return response()->json(['posts' => PostResource::collection($posts)]);
     }
 
     /**
@@ -24,9 +24,16 @@ class PostController extends Controller
      */
     public function store(PostCreateRequest $request)
     {
-        $post = Post::create($request->all());
+        if($request->flg == 'confirm') {
 
-        return response()->json(['message' => 'Post created successfully','post' =>  new PostResource($post)]);
+            $post = Post::create($request->all());
+
+            return response()->json(['message' => 'Post created successfully','post' =>  new PostResource($post)]);
+
+        }
+
+        return response()->json(['message' => 'Post confirmed successfully']);
+
     }
 
     /**
@@ -34,7 +41,7 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
-        return new PostResource($post);
+        return response()->json(['post' => new PostResource($post) ]);
     }
 
     /**
@@ -42,9 +49,15 @@ class PostController extends Controller
      */
     public function update(PostUpdateRequest $request, Post $post)
     {
-        $post->update($request->all());
+        if($request->flg == 'confirm'){
 
-        return response()->json(['message' => 'Post updated successfully','post' =>  new PostResource($post)]);
+            $post->update($request->all());
+
+            return response()->json(['message' => 'Post updated successfully','post' =>  new PostResource($post)]);
+
+        }
+
+        return response()->json(['message' => 'Post edit confirmed successfully']);
     }
 
     /**
@@ -52,6 +65,8 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
+        $post->update(['status' => 0]);
+
         $post->delete();
 
         return response()->json(['message' => 'Post deleted successfully']);
