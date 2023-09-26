@@ -37,7 +37,7 @@ Getting Started
 9. Install Node.js dependencies using npm or yarn.
 
    npm install
-   # or
+      or
    yarn install
 
 10. Configure the API base URL.
@@ -47,5 +47,5 @@ Getting Started
 11. Start the Vue.js development server.
 
     npm run serve
-    # or
+       or
     yarn serve
