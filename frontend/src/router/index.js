@@ -11,6 +11,7 @@ import PostCreate from '../views/posts/PostCreate.vue'
 import PostCreateConfirm from '../views/posts/PostCreateConfirm.vue'
 import PostEdit from '../views/posts/PostEdit.vue'
 import PostEditConfirm from '../views/posts/PostEditConfirm.vue'
+import ForgotPassword from '../views/auth/ForgotPassword.vue'
 import ChangePassword from '../views/auth/ChangePassword.vue'
 import ResetPassword from '../views/auth/ResetPassword.vue'
 import AppRegister from '../views/auth/AppRegister.vue'
@@ -86,13 +87,13 @@ const router = createRouter({
       component: ChangePassword
     },
     {
-      path: '/ResetPassword',
-      name: 'ResetPassword',
-      component: ResetPassword
+      path: '/ForgotPassword',
+      name: 'ForgotPassword',
+      component: ForgotPassword
     },
     {
-      path: '/ResetPassword',
-      name: 'ResetPassword',
+      path: '/resetPassword/:userId-:token',
+      name: 'resetPassword',
       component: ResetPassword
     },
     {

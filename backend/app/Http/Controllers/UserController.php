@@ -8,10 +8,12 @@ use Illuminate\Support\Str;
 use App\Exports\UsersExport;
 use Illuminate\Http\Request;
 use App\Http\Resources\UserResource;
+use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\UserCreateRequest;
 use App\Http\Requests\UserUpdateRequest;
+use App\Http\Requests\ChangePasswordRequest;
 
 class UserController extends Controller
 {
@@ -107,6 +109,15 @@ class UserController extends Controller
         } else {
             return response()->json(['error' => 'Image not found'], 404);
         }
+    }
+
+    public function changePassword(ChangePasswordRequest $request, User $user) {
+
+        $user->password = Hash::make($request->password);
+
+        $user->save();
+
+        return response()->json(['message' => 'User password updated successfully']);
     }
 
 }

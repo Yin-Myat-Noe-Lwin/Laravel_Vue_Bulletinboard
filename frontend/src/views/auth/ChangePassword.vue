@@ -2,12 +2,17 @@
 
   import { ref } from 'vue';
   import axiosInstance from '@/axios.js';
+  import { useRouter } from 'vue-router';
+
+  const user = JSON.parse(localStorage.getItem('user'));
 
   const formData = ref({
     old_password: '',
     password: '',
     password_confirmation: ''
   });
+
+  const router = useRouter();
 
   const currentPasswordError = ref('');
 
@@ -17,11 +22,12 @@
 
   async function updatePassword() {
       try{
-        const response = await axiosInstance.post('/changePassword', formData.value);
+        const response = await axiosInstance.post(`/users/${user.id}/changePassword`, formData.value);
         currentPasswordError.value = '';
         newPasswordError.value = '';
         newConfirmPasswordError.value = '';
         console.log('Changed password successfully!', response.data);
+        router.push('/');
       }catch (error) {
         if(error.response){
         const { errors } = error.response.data;

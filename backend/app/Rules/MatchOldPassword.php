@@ -15,6 +15,8 @@ class MatchOldPassword implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        Hash::check($value, auth()->user()->password);
+        if (!Hash::check($value, auth()->user()->password)) {
+            $fail('Current password is wrong.');
+        }
     }
 }

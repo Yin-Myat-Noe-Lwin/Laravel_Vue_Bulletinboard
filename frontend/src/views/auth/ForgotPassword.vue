@@ -1,4 +1,38 @@
 <script setup>
+
+  import { ref } from 'vue';
+  import axiosInstance from '@/axios.js';
+
+  const formData = ref({
+    email: ''
+  });
+
+  const emailError = ref('');
+
+  const alertError = ref('');
+
+  async function forgotPassword() {
+    try {
+    const response = await axiosInstance.post('/forgotPassword', formData.value);
+    emailError.value = '';
+    alertError.value = '';
+    console.log('Forgot password successfully!', response.data);
+  } catch (error) {
+    if (error.response) {
+      const { errors } = error.response.data;
+      if (errors) {
+        if (errors.email) {
+          emailError.value = errors.email[0] || '';
+        }
+      } else {
+        emailError.value = '';
+        alertError.value = error.response.data.error;
+      }
+    }
+    console.error('Forgot Password failed:', error);
+  }
+  }
+
 </script>
 
 <template>
@@ -8,25 +42,31 @@
       <div class="card-header card-header-bg">
         Forgot Password?
       </div>
-      <div class="card-body mt-5">
-        <div class="mb-3 row">
+      <div class="card-body">
+        <div v-if="alertError" class="alert alert-danger" role="alert">
+              {{ alertError }}
+        </div>
+        <form @submit.prevent = "forgotPassword">
+          <div class="mb-3 mt-4 row">
           <label for="email" class="text-right-label col-12 col-md-4 col-form-label">Email:</label>
           <div class="col-12 col-md-8">
             <div class="row">
               <div class="col-12 col-md-10">
-                <input type="email" class="form-control" id="email" name="email">
+                <input v-model="formData.email" type="text" class="form-control" id="email" name="email">
+                <div v-if="emailError" class="text-danger">{{ emailError }}</div>
               </div>
               <div class="col-12 col-md-2"></div>
             </div>
           </div>
-        </div>
-        <div class="mb-3 row">
-          <div class="col-12 col-md-4">
           </div>
-          <div class="col-12 col-md-8">
-            <button type="button" class="btn btn-primary">Reset Password</button>
+          <div class="mb-3 row">
+            <div class="col-12 col-md-4">
+            </div>
+            <div class="col-12 col-md-8">
+              <button type="submit" class="btn btn-primary">Reset Password</button>
+            </div>
           </div>
-        </div>
+        </form>
       </div>
     </div>
     </div>

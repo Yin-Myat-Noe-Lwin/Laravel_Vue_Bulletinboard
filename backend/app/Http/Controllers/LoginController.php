@@ -39,7 +39,7 @@ class LoginController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         $cookie = cookie()->forget('token');
-        
+
         return response()->json(['message' => 'Logged out successfully!'])->withCookie($cookie);
     }
 

@@ -27,6 +27,9 @@
     localStorage.setItem('token', response.data.token);
     localStorage.setItem('user', JSON.stringify(response.data.user));
     router.push('/');
+    setTimeout(() => {
+      window.location.reload();
+    }, 5);
   } catch (error) {
     if (error.response) {
       const { errors } = error.response.data;
@@ -99,7 +102,7 @@
                   </div>
                 </div>
                 <div class="col-12 col-md-6">
-                  <RouterLink to="/" aria-current="page" class="link-class text-right-label">forgotten password? </RouterLink>
+                  <RouterLink to="/ForgotPassword" aria-current="page" class="link-class text-right-label">forgotten password? </RouterLink>
                 </div>
               </div>
             </div>

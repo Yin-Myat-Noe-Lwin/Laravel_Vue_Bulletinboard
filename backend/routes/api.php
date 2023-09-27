@@ -33,9 +33,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/posts/{post}', [PostController::class, 'update']);
     Route::delete('/posts/{post}', [PostController::class, 'destroy']);
 
-    Route::post('/changePassword', [PasswordController::class, 'changePassword']);
+    Route::post('/users/{user}/changePassword', [UserController::class, 'changePassword']);
+
     Route::post('/logout', [LoginController::class, 'logout']);
 });
 
 Route::post('/register', [UserController::class, 'store']);
 Route::post('/login', [LoginController::class, 'login']);
+Route::post('/forgotPassword', [PasswordController::class, 'forgotPassword']);
+Route::post('/resetPassword', [PasswordController::class, 'resetPassword']);

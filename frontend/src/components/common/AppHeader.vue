@@ -4,9 +4,8 @@ import { RouterLink } from 'vue-router';
 import axiosInstance from '@/axios.js';
 import { useRouter } from 'vue-router';
 
-const router = useRouter();
 
-const userToken = localStorage.getItem('token');
+const router = useRouter();
 
 const user = JSON.parse(localStorage.getItem('user'));
 
@@ -17,6 +16,9 @@ async function logout() {
           localStorage.removeItem('user');
           localStorage.removeItem('token');
           router.push('/');
+          setTimeout(() => {
+            window.location.reload();
+          }, 5);
     }
     else {
         console.error('Logout failed:', response.data);
