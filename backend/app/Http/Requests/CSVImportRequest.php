@@ -2,10 +2,9 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class PostCreateRequest extends FormRequest
+class CSVImportRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,11 +22,7 @@ class PostCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string' , Rule::unique('users', 'name')->whereNull('deleted_at') ],
-            'description' => ['required', 'string'],
-            'status' => ['required', 'in:0,1'],
-            'create_user_id' => 'required',
-            'updated_user_id' => 'required',
+            'file' => 'required'
         ];
     }
 }

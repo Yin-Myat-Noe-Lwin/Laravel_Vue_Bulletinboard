@@ -70,6 +70,29 @@
     fetchPosts();
   });
 
+  async function downloadPostCSV() {
+    try{
+      const response = await axiosInstance.get('/export', {
+      responseType: 'blob',
+    });
+
+    const blob = new Blob([response.data], {
+      type: 'application/csv',
+    });
+
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'posts.csv';
+    link.click();
+
+    window.URL.revokeObjectURL(url);
+    }catch (error) {
+      console.error(error);
+    }
+  }
+
 </script>
 
 <template>
@@ -99,13 +122,17 @@
                 <button type="button" class="btn btn-primary common-btn" style="width: 100%">Search</button>
               </div>
               <div class="col-12 col-md-3">
-                <button type="button" class="btn btn-primary common-btn"  style="width: 100%">Create</button>
+                <router-link to="/PostCreate" class="btn btn-primary common-btn" style="width: 100%">
+                  Create
+                </router-link>
               </div>
               <div class="col-12 col-md-3">
-                <button type="button" class="btn btn-primary common-btn"  style="width: 100%">Upload</button>
+                <router-link to="/UploadCSV" class="btn btn-primary common-btn" style="width: 100%">
+                Upload
+                </router-link>
               </div>
               <div class="col-12 col-md-3">
-                <button type="button" class="btn btn-primary common-btn"  style="width: 100%">Download</button>
+                <button @click="downloadPostCSV" type="button" class="btn btn-primary common-btn"  style="width: 100%">Download</button>
               </div>
             </div>
           </div>

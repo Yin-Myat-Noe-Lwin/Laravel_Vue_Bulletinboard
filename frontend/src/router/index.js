@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import axiosInstance from '@/axios.js';
 import NotFound from '../views/common/NotFound.vue'
 import HomeView from '../views/HomeView.vue'
 import UserList from '../views/users/UserList.vue'
@@ -17,6 +18,8 @@ import ResetPassword from '../views/auth/ResetPassword.vue'
 import AppRegister from '../views/auth/AppRegister.vue'
 import AppLogin from '../views/auth/AppLogin.vue'
 import UploadCSV from '../views/common/UploadCSV.vue'
+
+const user = JSON.parse(localStorage.getItem('user'))
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -39,22 +42,26 @@ const router = createRouter({
     {
       path: '/UserCreate',
       name: 'UserCreate',
-      component: UserCreate
+      component: UserCreate,
+      meta: { requiresAuth: true },
     },
     {
       path: '/UserCreateConfirm',
       name: 'UserCreateConfirm',
-      component: UserCreateConfirm
+      component: UserCreateConfirm,
+      meta: { requiresAuth: true }
     },
     {
       path: '/UserProfile',
       name: 'UserProfile',
-      component: UserProfile
+      component: UserProfile,
+      meta: { requiresAuth: true }
     },
     {
       path: '/UserEdit',
       name: 'UserEdit',
-      component: UserEdit
+      component: UserEdit,
+      meta: { requiresAuth: true }
     },
     {
       path: '/PostList',
@@ -64,37 +71,44 @@ const router = createRouter({
     {
       path: '/PostCreate',
       name: 'PostCreate',
-      component: PostCreate
+      component: PostCreate,
+      meta: { requiresAuth: true }
     },
     {
       path: '/PostCreateConfirm',
       name: 'PostCreateConfirm',
-      component: PostCreateConfirm
+      component: PostCreateConfirm,
+      meta: { requiresAuth: true }
     },
     {
       path: '/PostEdit/:postID',
       name: 'PostEdit',
-      component: PostEdit
+      component: PostEdit,
+      meta: { requiresAuth: true }
     },
     {
       path: '/PostEditConfirm/:postID',
       name: 'PostEditConfirm',
-      component: PostEditConfirm
+      component: PostEditConfirm,
+      meta: { requiresAuth: true }
     },
     {
       path: '/ChangePassword',
       name: 'ChangePassword',
-      component: ChangePassword
+      component: ChangePassword,
+      meta: { requiresAuth: true }
     },
     {
       path: '/ForgotPassword',
       name: 'ForgotPassword',
-      component: ForgotPassword
+      component: ForgotPassword,
+      beforeEnter: requireAuth
     },
     {
       path: '/resetPassword/:userId-:token',
       name: 'resetPassword',
-      component: ResetPassword
+      component: ResetPassword,
+      beforeEnter: requireAuth
     },
     {
       path: '/register',
@@ -104,7 +118,8 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      component: AppLogin
+      component: AppLogin,
+      beforeEnter: requireAuth
     },
     {
       path: '/UploadCSV',
@@ -113,5 +128,36 @@ const router = createRouter({
     }
   ]
 })
+
+router.beforeEach(async (to, from, next) => {
+  if (to.meta.requiresAuth) {
+    try {
+      const response = await axiosInstance.get(`/users/${user.id}`);
+      if (response.status === 200) {
+        next();
+      } else {
+        next({ name: 'login' });
+      }
+    } catch (error) {
+      console.error('Authentication Error:', error);
+      next({ name: 'login' });
+    }
+  } else {
+    next();
+  }
+});
+
+  function isLoggedIn() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    return user !== null;
+  }
+
+  function requireAuth(to, from, next) {
+    if (!isLoggedIn()) {
+      next();
+    } else {
+      next({ name: 'home' });
+    }
+  }
 
 export default router

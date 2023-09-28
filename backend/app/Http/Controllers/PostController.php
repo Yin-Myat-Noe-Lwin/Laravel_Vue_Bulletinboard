@@ -2,11 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use Exception;
 use App\Models\Post;
+use App\Exports\PostsExport;
+use App\Imports\PostsImport;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+
+use Illuminate\Support\Facades\Log;
 use App\Http\Resources\PostResource;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Requests\CSVImportRequest;
+use Illuminate\Database\QueryException;
 use App\Http\Requests\PostCreateRequest;
 use App\Http\Requests\PostUpdateRequest;
+use Illuminate\Support\Facades\Validator;
 
 class PostController extends Controller
 {
@@ -71,5 +81,17 @@ class PostController extends Controller
 
         return response()->json(['message' => 'Post deleted successfully']);
 
+    }
+
+    public function export()
+    {
+        return Excel::download(new PostsExport, 'posts.csv');
+    }
+
+    public function import(CSVImportRequest $request)
+    {
+        Excel::import(new PostsImport, $request->file('file')->store('files'));
+
+        return response()->json(['message' => 'Posts imported successfully']);
     }
 }
