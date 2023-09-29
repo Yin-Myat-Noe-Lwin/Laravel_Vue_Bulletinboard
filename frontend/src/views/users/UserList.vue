@@ -1,85 +1,122 @@
 <script setup>
 
-import { ref, onMounted } from 'vue';
-import axiosInstance from '@/axios.js';
+  import { ref, onMounted } from 'vue';
+  import axiosInstance from '@/axios.js';
+  import Paginate from 'vuejs-paginate-next';
 
-const profileImageUrl = ref(null);
+  const users = ref([]);
 
-const formatDate = (datetime) => {
-  const date = new Date(datetime);
-  return date.toLocaleDateString();
-};
+  const totalPages = ref(0);
 
-const users = ref([]);
+  const profileImageUrl = ref(null);
 
-const fetchUsers = () => {
+  const searchNameQuery = ref('');
+  const searchEmailQuery = ref('');
+  const searchFromDateQuery = ref('');
+  const searchToDateQuery = ref('');
+
+  const formatDate = (datetime) => {
+    const date = new Date(datetime);
+    return date.toLocaleDateString();
+  };
+
+  // const fetchUsers = () => {
+  //   axiosInstance
+  //     .get('/users')
+  //     .then((response) => {
+  //       console.log(response.data)
+  //       users.value = response.data.users;
+  //     })
+  //     .catch((error) => {
+  //       alert("error")
+  //     console.error(error);
+  //     });
+  // };
+
+  const fetchUsers = (page = 1) => {
   axiosInstance
-    .get('/users')
+    .get(`/users?page=${page}`)
     .then((response) => {
-      users.value = response.data.users;
+      console.log(response.data)
+      users.value = response.data.users.data;
+      totalPages.value = response.data.users.last_page;
     })
     .catch((error) => {
-      alert("error")
-     console.error(error);
-    });
-};
-
-onMounted(() => {
-  fetchUsers();
-});
-
-const userDetail = ref({});
-
-const selectedUser = ref({});
-
-const showModalUserDetail = ref(false);
-
-const showModalDelete = ref(false);
-
-const showUserDetail = async (user) => {
-  userDetail.value = user;
-  showModalUserDetail.value = true;
-  try {
-    axiosInstance.get(`/users/${user.id}/${user.profile}`, { responseType: 'blob' })
-      .then((response) => {
-        const blob = new Blob([response.data], { type: response.headers['content-type'] });
-        const imageUrl = URL.createObjectURL(blob);
-        profileImageUrl.value = imageUrl;
-      })
-  } catch (error) {
-    console.error('Error fetching profile image:', error);
-  }
-};
-
-const closeUerDetail = () => {
-  selectedUser.value = null;
-  showModalUserDetail.value = false;
-};
-
-const showDeleteConfirmation = (user) => {
-  selectedUser.value = user;
-  showModalDelete.value = true;
-};
-
-const closeDeleteConfirmation = () => {
-  selectedUser.value = null;
-  showModalDelete.value = false;
-};
-
-const deleteUser = (userID) => {
-  alert("deleted");
-  axiosInstance
-    .delete(`/users/${userID}`)
-    .then((response) => {
-      console.log("user deleted successfully");
-      closeDeleteConfirmation()
-      window.location.reload()
-    })
-    .catch((error) => {
-      alert("error");
+      alert('Error fetching users');
       console.error(error);
     });
 };
+
+  onMounted(() => {
+    fetchUsers();
+  });
+
+  const userDetail = ref({});
+
+  const selectedUser = ref({});
+
+  const showModalUserDetail = ref(false);
+
+  const showModalDelete = ref(false);
+
+  const showUserDetail = async (user) => {
+    userDetail.value = user;
+    showModalUserDetail.value = true;
+    try {
+      axiosInstance.get(`/users/${user.id}/${user.profile}`, { responseType: 'blob' })
+        .then((response) => {
+          const blob = new Blob([response.data], { type: response.headers['content-type'] });
+          const imageUrl = URL.createObjectURL(blob);
+          profileImageUrl.value = imageUrl;
+        })
+    } catch (error) {
+      console.error('Error fetching profile image:', error);
+    }
+  };
+
+  const closeUerDetail = () => {
+    selectedUser.value = null;
+    showModalUserDetail.value = false;
+  };
+
+  const showDeleteConfirmation = (user) => {
+    selectedUser.value = user;
+    showModalDelete.value = true;
+  };
+
+  const closeDeleteConfirmation = () => {
+    selectedUser.value = null;
+    showModalDelete.value = false;
+  };
+
+  const deleteUser = (userID) => {
+    alert("deleted");
+    axiosInstance
+      .delete(`/users/${userID}`)
+      .then((response) => {
+        console.log("user deleted successfully");
+        closeDeleteConfirmation()
+        window.location.reload()
+      })
+      .catch((error) => {
+        alert("error");
+        console.error(error);
+      });
+  };
+
+  async function searchUserData(page = 1) {
+        try {
+          console.log(searchFromDateQuery)
+          console.log(searchToDateQuery)
+          const response = await axiosInstance.get(`/users?page=${page}&searchName=${searchNameQuery.value}&searchEmail=${searchEmailQuery.value}&searchFromDate=${searchFromDateQuery.value}&searchToDate=${searchToDateQuery.value}`);
+          users.value = response.data.users.data;
+          totalPages.value = response.data.users.last_page;
+          console.log( response.data.users.data)
+        }
+        catch (error) {
+            console.error('Error fetching posts:', error);
+        }
+  }
 
 </script>
 
@@ -100,6 +137,7 @@ const deleteUser = (userID) => {
                   >
                   <div class="col-12 col-md-9">
                     <input
+                      v-model="searchNameQuery"
                       type="text"
                       class="form-control form-custom-border"
                       id="name"
@@ -117,6 +155,7 @@ const deleteUser = (userID) => {
                   >
                   <div class="col-12 col-md-9">
                     <input
+                      v-model="searchEmailQuery"
                       type="text"
                       class="form-control form-custom-border"
                       id="email"
@@ -134,6 +173,7 @@ const deleteUser = (userID) => {
                   >
                   <div class="col-12 col-md-9">
                     <input
+                      v-model="searchFromDateQuery"
                       type="date"
                       class="form-control form-custom-border"
                       id="dob"
@@ -151,6 +191,7 @@ const deleteUser = (userID) => {
                   >
                   <div class="col-12 col-md-9">
                     <input
+                      v-model="searchToDateQuery"
                       type="date"
                       class="form-control form-custom-border"
                       id="dob"
@@ -163,6 +204,7 @@ const deleteUser = (userID) => {
           </div>
           <div class="col-12 col-md-2">
             <button
+              @click="searchUserData"
               type="button"
               class="btn btn-primary mx-3 common-btn"
               style="width: 80%"
@@ -187,7 +229,7 @@ const deleteUser = (userID) => {
               <th scope="col">Operation</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody v-if="users.length > 0">
             <tr v-for="user in users" :key="user.id">
               <th scope="row">{{ user.id }}</th>
               <td class="text-success" data-bs-toggle="modal" data-bs-target="#userDetailBtn" @click="showUserDetail(user)">{{ user.name }}</td>
@@ -212,7 +254,33 @@ const deleteUser = (userID) => {
               </td>
             </tr>
           </tbody>
+          <tbody v-else>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td>No data available in table</td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+          </tbody>
         </table>
+        <div class="d-flex justify-content-end">
+          <paginate
+          :page-count="totalPages"
+          :click-handler="searchUserData"
+          :margin-pages="2"
+          :prev-text="'Previous'"
+          :next-text="'Next'"
+          :container-class="'pagination'"
+          :page-class="'page-item'"
+          ></paginate>
+        </div>
         <div
           class="modal fade"
           :class="{'show': showModalDelete}"

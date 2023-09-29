@@ -2,6 +2,14 @@
 
   import { ref, onMounted } from 'vue';
   import axiosInstance from '@/axios.js';
+  import Paginate from 'vuejs-paginate-next';
+
+  const posts = ref([]);
+
+  const currentPage = ref(1);
+  const totalPages = ref(0);
+
+  const searchQuery = ref('');
 
   const formatDate = (datetime) => {
     const date = new Date(datetime);
@@ -41,7 +49,6 @@
   axiosInstance
     .delete(`/posts/${postID}`)
     .then((response) => {
-      console.log("post deleted successfully");
       closeDeleteConfirmation()
       window.location.reload()
     })
@@ -51,20 +58,30 @@
     });
 };
 
-  const posts = ref([]);
+  // const fetchPosts = () => {
+  //   axiosInstance
+  //     .get('/posts')
+  //     .then((response) => {
+  //       posts.value = response.data.posts;
+  //     })
+  //     .catch((error) => {
+  //       alert("error")
+  //     console.error(error);
+  //     });
+  // };
 
-  const fetchPosts = () => {
-    axiosInstance
-      .get('/posts')
-      .then((response) => {
-        posts.value = response.data.posts;
-        console.log(response)
-      })
-      .catch((error) => {
-        alert("error")
+  const fetchPosts = (page = 1) => {
+  axiosInstance
+    .get(`/posts?page=${page}`)
+    .then((response) => {
+      posts.value = response.data.posts.data;
+      totalPages.value = response.data.posts.last_page;
+    })
+    .catch((error) => {
+      alert('Error fetching posts');
       console.error(error);
-      });
-  };
+    });
+};
 
   onMounted(() => {
     fetchPosts();
@@ -93,6 +110,18 @@
     }
   }
 
+  async function searchPostData(page = 1) {
+      try {
+        const response = await axiosInstance.get(`posts?page=${page}&search=${searchQuery.value}`);
+        console.log(response.data)
+        posts.value = response.data.posts.data;
+        totalPages.value = response.data.posts.last_page;
+      }
+      catch (error) {
+          console.error('Error fetching posts:', error);
+      }
+  }
+
 </script>
 
 <template>
@@ -110,7 +139,7 @@
                 <div class="mb-3 row">
                   <label for="name" class="text-right-label col-12 col-md-4 col-form-label">keyword:</label>
                   <div class="col-12 col-md-8">
-                    <input type="text" class="form-control form-custom-border" id="name" name="name">
+                    <input v-model="searchQuery" type="text" class="form-control form-custom-border" id="searchData" name="searchData">
                   </div>
                 </div>
               </div>
@@ -119,7 +148,7 @@
           <div class="col-12 col-md-6">
             <div class="row">
               <div class="col-12 col-md-3">
-                <button type="button" class="btn btn-primary common-btn" style="width: 100%">Search</button>
+                <button @click="searchPostData" type="submit" class="btn btn-primary common-btn" style="width: 100%">Search</button>
               </div>
               <div class="col-12 col-md-3">
                 <router-link to="/PostCreate" class="btn btn-primary common-btn" style="width: 100%">
@@ -147,7 +176,7 @@
               <th scope="col">Operation</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody v-if="posts.length > 0">
             <tr v-for="post in posts" :key="post.id">
               <td class="text-success" data-bs-toggle="modal" data-bs-target="#postDetailBtn" @click="showPostDetail(post)">{{ post.title }}</td>
               <td>{{ post.description }}</td>
@@ -169,7 +198,27 @@
               </td>
             </tr>
           </tbody>
+          <tbody v-else>
+            <tr>
+              <td></td>
+              <td></td>
+              <td>No data available in table.</td>
+              <td></td>
+              <td></td>
+            </tr>
+          </tbody>
         </table>
+        <div class="d-flex justify-content-end">
+          <paginate
+          :page-count="totalPages"
+          :click-handler="searchPostData"
+          :margin-pages="2"
+          :prev-text="'Previous'"
+          :next-text="'Next'"
+          :container-class="'pagination'"
+          :page-class="'page-item'"
+          ></paginate>
+        </div>
         <div
           class="modal post-modal-custom fade"
           :class="{'show': showModalDelete}"

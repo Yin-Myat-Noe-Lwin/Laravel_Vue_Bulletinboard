@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\User;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use App\Exports\UsersExport;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
@@ -20,10 +22,40 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+
+    public function index(Request $request)
     {
-        $users = User::all();
-        return response()->json(['users' => UserResource::collection($users)]);
+        $searchNameQuery = $request->input('searchName');
+        $searchEmailQuery = $request->input('searchEmail');
+        $searchFromDateQuery = $request->input('searchFromDate');
+        $searchToDateQuery = $request->input('searchToDate');
+
+        if ($searchNameQuery || $searchEmailQuery ||  $searchFromDateQuery ||  $searchToDateQuery)
+        {
+            $usersQuery = User::query();
+
+            $usersQuery->when($searchNameQuery, function ($query) use ($searchNameQuery) {
+                return $query->where('name', 'like', "%$searchNameQuery%");
+            });
+
+            $usersQuery->when($searchEmailQuery, function ($query) use ($searchEmailQuery) {
+                return $query->where('email', 'like', "%$searchEmailQuery%");
+            });
+
+            $usersQuery->when($searchFromDateQuery, function ($query) use ($searchFromDateQuery) {
+                return $query->whereDate('created_at', '>=', date('Y-m-d 00:00:00', strtotime($searchFromDateQuery)));
+            });
+
+            $usersQuery->when($searchToDateQuery, function ($query) use ($searchToDateQuery) {
+                return $query->whereDate('created_at', '<=', date('Y-m-d 00:00:00', strtotime($searchToDateQuery)));
+            });
+
+            $users = $usersQuery->paginate(3);
+        } else
+        {
+            $users = User::paginate(3);
+        }
+        return response()->json(['users' => $users]);
     }
 
     /**

@@ -23,10 +23,20 @@ class PostController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $posts = Post::all();
-        return response()->json(['posts' => PostResource::collection($posts)]);
+        $searchQuery = $request->input('search');
+
+        if($searchQuery)
+        {
+            $posts = Post::where('title', 'like', "%$searchQuery%")
+                        ->orWhere('description', 'like', "%$searchQuery%")
+                        ->paginate(3);
+        } else
+        {
+            $posts = Post::paginate(3);
+        }
+        return response()->json(['posts' => $posts]);
     }
 
     /**

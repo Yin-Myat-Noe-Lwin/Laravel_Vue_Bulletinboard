@@ -25,6 +25,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/users/{user}', [UserController::class, 'update']);
     Route::delete('/users/{user}', [UserController::class, 'destroy']);
 
+    Route::get('/searchUser', [UserController::class, 'search']);
+
     Route::get('/export', [UserController::class, 'export']);
 
     Route::get('/posts', [PostController::class, 'index']);
@@ -32,6 +34,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/posts', [PostController::class, 'store']);
     Route::put('/posts/{post}', [PostController::class, 'update']);
     Route::delete('/posts/{post}', [PostController::class, 'destroy']);
+
+    Route::get('/searchPost', [PostController::class, 'search']);
 
     Route::get('/export', [PostController::class, 'export']);
     Route::post('/import',[PostController::class,'import']);
