@@ -23,11 +23,11 @@ class PostCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string' , Rule::unique('users', 'name')->whereNull('deleted_at') ],
+            'title' => ['required', 'string' , 'max:255' ,Rule::unique('posts', 'title')->whereNull('deleted_at') ],
             'description' => ['required', 'string'],
             'status' => ['required', 'in:0,1'],
             'create_user_id' => 'required',
-            'updated_user_id' => 'required',
+            'updated_user_id' => 'required'
         ];
     }
 }

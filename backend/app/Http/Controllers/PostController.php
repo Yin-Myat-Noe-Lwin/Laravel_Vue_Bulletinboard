@@ -2,21 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Exception;
 use App\Models\Post;
 use App\Exports\PostsExport;
 use App\Imports\PostsImport;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
-
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\PostResource;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Requests\CSVImportRequest;
-use Illuminate\Database\QueryException;
 use App\Http\Requests\PostCreateRequest;
 use App\Http\Requests\PostUpdateRequest;
-use Illuminate\Support\Facades\Validator;
 
 class PostController extends Controller
 {
@@ -27,16 +22,55 @@ class PostController extends Controller
     {
         $searchQuery = $request->input('search');
 
-        if($searchQuery)
-        {
-            $posts = Post::where('title', 'like', "%$searchQuery%")
-                        ->orWhere('description', 'like', "%$searchQuery%")
-                        ->paginate(3);
-        } else
-        {
-            $posts = Post::paginate(3);
+        $user = Auth::user();
+
+
+        if ($user->isAdmin()) {
+
+            $query = Post::query();
+
+        } else {
+
+            $query = Post::where('create_user_id', $user->id);
+
         }
-        return response()->json(['posts' => $posts]);
+
+        if ($searchQuery) {
+
+            $query->where(function ($q) use ($searchQuery) {
+                $q->where('title', 'like', "%$searchQuery%")
+                ->orWhere('description', 'like', "%$searchQuery%");
+            });
+
+        }
+
+        $posts = $query->paginate(5);
+
+        $allPosts = Post::all();
+
+        return response()->json(['posts' => $posts , 'allPosts' => $allPosts]);
+    }
+
+    public function showActivePosts(Request $request)
+    {
+        $searchQuery = $request->input('search');
+
+        $query = Post::where('status', 1);
+
+        if ($searchQuery) {
+
+            $query->where(function ($q) use ($searchQuery) {
+                $q->where('title', 'like', "%$searchQuery%")
+                ->orWhere('description', 'like', "%$searchQuery%");
+            });
+
+        }
+
+        $posts = $query->paginate(5);
+
+        $allPosts = Post::all();
+
+        return response()->json(['posts' => $posts , 'allPosts' => $allPosts]);
     }
 
     /**
@@ -52,7 +86,7 @@ class PostController extends Controller
 
         }
 
-        return response()->json(['message' => 'Post confirmed successfully']);
+        return response()->json(['message' => 'Post create confirmed successfully']);
 
     }
 
@@ -69,7 +103,7 @@ class PostController extends Controller
      */
     public function update(PostUpdateRequest $request, Post $post)
     {
-        if($request->flg == 'confirm'){
+        if($request->flg == 'confirm') {
 
             $post->update($request->all());
 
@@ -90,7 +124,6 @@ class PostController extends Controller
         $post->delete();
 
         return response()->json(['message' => 'Post deleted successfully']);
-
     }
 
     public function export()

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ResetPasswordRequest extends FormRequest
@@ -22,8 +23,8 @@ class ResetPasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'password' => ['required', 'confirmed'] ,
-            'password_confirmation' => ['required']
+            'password' => ['required', 'string', Password::min(8), 'regex:/^(?=.*[A-Z])(?=.*[!@#\$%\^&\*]).+$/', 'confirmed'],
+            'password_confirmation' => ['required'],
         ];
     }
 }

@@ -23,7 +23,9 @@
   --bs-alert-border-radius: 0.2 rem !important;
 }
 
-.navbar-nav .nav-item .nav-link , .navbar-brand, .footer-txt  {
+.navbar-nav .nav-item .nav-link,
+.navbar-brand,
+.footer-txt {
   color: #208454 !important;
 }
 
@@ -38,7 +40,8 @@ thead th {
   text-align: center;
 }
 
-tbody th ,  tbody td {
+tbody th,
+tbody td {
   text-align: center;
 }
 
@@ -47,7 +50,7 @@ tbody tr:last-child {
 }
 
 .common-btn {
-  background: #208454 !important ;
+  background: #208454 !important;
   color: #fff !important;
   border: 1px solid #208454 !important;
 }
@@ -68,21 +71,21 @@ tbody tr:last-child {
   padding: 0 !important;
 }
 
-.form-check-input:checked  {
+.form-check-input:checked {
   background-color: #208454 !important;
   border-color: #208454 !important;
-  box-shadow: none !important ;
+  box-shadow: none !important;
 }
 
 .form-check-input:not(:checked) {
   background-color: #fff !important;
-  border-color: #208454 !important ;
-  box-shadow: none !important ;
+  border-color: #208454 !important;
+  box-shadow: none !important;
 }
 
 .modal {
-    --bs-modal-width: 500px !important;
-    --bs-modal-margin: 6rem !important;
+  --bs-modal-width: 500px !important;
+  --bs-modal-margin: 6rem !important;
 }
 
 .modal-custom {
@@ -97,4 +100,22 @@ tbody tr:last-child {
 .post-detail-modal-custom {
   --bs-modal-width: 500px !important;
   --bs-modal-margin: 7rem !important;
+}
+
+.preview-img {
+  position: relative;
+}
+
+.circle-x-btn {
+  position: absolute;
+  left: 38%;
+  top: -10%;
+}
+
+/* .li-item {
+  opacity: 0.7;
+} */
+
+.active {
+  font-weight: bolder !important;
 }

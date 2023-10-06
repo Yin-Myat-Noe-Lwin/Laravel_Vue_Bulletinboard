@@ -25,8 +25,8 @@ class UserCreateRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:40', Rule::unique('users', 'name')->whereNull('deleted_at') ],
-            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->whereNull('deleted_at')],
-            'password' => ['required','string',Password::min(5),'confirmed' ],
+            'email' => ['required', 'email', 'max:40', Rule::unique('users', 'email')->whereNull('deleted_at')],
+            'password' => ['required','string', Password::min(8), 'regex:/^(?=.*[A-Z])(?=.*[!@#\$%\^&\*]).+$/' ,'confirmed' ],
             'password_confirmation' => ['required'],
             'profile' => ['required', 'image', 'mimes:jpeg,png,jpg,jfif' , 'max:2048'],
             'type' => ['required', 'in:0,1'],
@@ -41,6 +41,13 @@ class UserCreateRequest extends FormRequest
     public function messages()
     {
         return [
+            'name.required' => 'Name can\'t be blank.',
+            'email.required' => 'Email can\'t be blank.',
+            'email.email' => 'Email format is invalid.',
+            'password.required' => 'Password can\'t be blank.',
+            'password.confirmed' => 'Password and Password confirmation do not match.',
+            'password_confirmation.required' => 'Password can\'t be blank.',
+            'profile.required' => 'Profile can\'t be blank.',
             'profile.max' => 'The uploaded image must be less than 2 MB in size.',
         ];
     }

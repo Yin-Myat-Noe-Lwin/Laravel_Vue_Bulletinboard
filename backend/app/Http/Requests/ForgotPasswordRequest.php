@@ -25,4 +25,12 @@ class ForgotPasswordRequest extends FormRequest
             'email' => ['required', 'email']
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'email.required' => 'Email can\'t be blank.',
+            'email.email' => 'Email format is invalid.'
+        ];
+    }
 }

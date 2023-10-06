@@ -3,7 +3,11 @@
 import { RouterLink } from 'vue-router';
 import axiosInstance from '@/axios.js';
 import { useRouter } from 'vue-router';
+import { useRoute } from "vue-router";
 
+const route = useRoute();
+
+const isActive = (path) => route.path === path;
 
 const router = useRouter();
 
@@ -36,22 +40,22 @@ async function logout() {
       <RouterLink to="/" class="navbar-brand" aria-current="page">Bulletin_Board</RouterLink>
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <RouterLink to="/UserList" class="nav-link" aria-current="page">Users</RouterLink>
+          <li class="nav-item li-item">
+            <RouterLink to="/UserList" class="nav-link" aria-current="page" active-class="active">Users</RouterLink>
           </li>
-          <li class="nav-item">
-            <RouterLink to="/PostList" class="nav-link" aria-current="page">Posts</RouterLink>
+          <li class="nav-item li-item">
+            <RouterLink to="/PostList" class="nav-link" aria-current="page" active-class="active">Posts</RouterLink>
           </li>
         </ul>
         <ul class="navbar-nav">
-          <li v-if="!user" class="nav-item">
-            <RouterLink  to="/register" class="nav-link" aria-current="page">Register</RouterLink>
+          <li v-if="!user" class="nav-item li-item"  active-class="active">
+            <RouterLink  to="/register" class="nav-link" aria-current="page" active-class="active">Register</RouterLink>
           </li>
-          <li v-if="!user" class="nav-item">
-            <RouterLink to="/login" class="nav-link" aria-current="page">Login</RouterLink>
+          <li v-if="!user" class="nav-item"  active-class="active">
+            <RouterLink to="/login" class="nav-link" aria-current="page" active-class="active">Login</RouterLink>
           </li>
-          <li v-if="user" class="nav-item">
-            <RouterLink to="/UserCreate" class="nav-link" aria-current="page">Create User</RouterLink>
+          <li v-if="user" class="nav-item li-item">
+            <RouterLink to="/UserCreate" class="nav-link" aria-current="page" active-class="active">Create User</RouterLink>
           </li>
           <li v-if="user" class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">

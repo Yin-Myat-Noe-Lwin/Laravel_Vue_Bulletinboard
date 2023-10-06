@@ -21,7 +21,7 @@ class PostsImport implements ToCollection,  WithValidation,  WithHeadingRow
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string', Rule::unique('posts', 'title')->whereNull('deleted_at') ],
+            'title' => ['required', 'string' , 'max:255' ,Rule::unique('posts', 'title')->whereNull('deleted_at') ],
             'description' => ['required', 'string'],
             'status' => ['required', Rule::in([0, 1])]
         ];
@@ -34,11 +34,17 @@ class PostsImport implements ToCollection,  WithValidation,  WithHeadingRow
         foreach ($rows as $row) {
 
             $post = new Post();
+
             $post->title = $row['title'];
+
             $post->description = $row['description'];
+
             $post->status = $row['status'];
+
             $post->create_user_id = Auth::id() ;
+
             $post->updated_user_id = Auth::id();
+
             $post->save();
 
             $posts[] = $post;

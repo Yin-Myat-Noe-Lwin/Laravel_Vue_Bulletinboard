@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Rules\MatchOldPassword;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ChangePasswordRequest extends FormRequest
@@ -24,8 +25,18 @@ class ChangePasswordRequest extends FormRequest
     {
         return [
             'old_password'=> ['required', new MatchOldPassword],
-            'password' => ['required', 'confirmed'],
+            'password' => ['required', 'string', Password::min(8), 'regex:/^(?=.*[A-Z])(?=.*[!@#\$%\^&\*]).+$/' , 'confirmed'],
             'password_confirmation' => ['required']
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'old_password.required' => 'Current password can\'t be blank.',
+            'password.required' => 'New password can\'t be blank.',
+            'password.confirmed' => 'New password and New confirm password confirmation is not match.',
+            'password_confirmation.required' => 'New confirm password can\'t be blank.'
         ];
     }
 }

@@ -25,11 +25,11 @@ class PostUpdateRequest extends FormRequest
         $postId = $this->route('post')->id;
 
         return [
-            'title' => ['required', 'string', Rule::unique('posts', 'title')->whereNull('deleted_at')->ignore($postId)],
+            'title' => ['required', 'string', 'max:255' ,Rule::unique('posts', 'title')->whereNull('deleted_at')->ignore($postId)],
             'description' => ['required'],
             'status' => ['required', 'in:0,1'],
             'create_user_id' => 'required',
-            'updated_user_id' => 'required',
+            'updated_user_id' => 'required'
         ];
     }
 }

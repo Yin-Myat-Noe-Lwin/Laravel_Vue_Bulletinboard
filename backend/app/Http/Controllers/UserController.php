@@ -2,13 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
 use App\Models\User;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use App\Exports\UsersExport;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
@@ -16,6 +14,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\UserCreateRequest;
 use App\Http\Requests\UserUpdateRequest;
 use App\Http\Requests\ChangePasswordRequest;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -30,55 +29,112 @@ class UserController extends Controller
         $searchFromDateQuery = $request->input('searchFromDate');
         $searchToDateQuery = $request->input('searchToDate');
 
-        if ($searchNameQuery || $searchEmailQuery ||  $searchFromDateQuery ||  $searchToDateQuery)
-        {
-            $usersQuery = User::query();
+        $usersQuery = User::query();
 
-            $usersQuery->when($searchNameQuery, function ($query) use ($searchNameQuery) {
-                return $query->where('name', 'like', "%$searchNameQuery%");
-            });
+        if (Auth::user()->isAdmin()) {
 
-            $usersQuery->when($searchEmailQuery, function ($query) use ($searchEmailQuery) {
-                return $query->where('email', 'like', "%$searchEmailQuery%");
-            });
+            $usersQuery->paginate(5);
 
-            $usersQuery->when($searchFromDateQuery, function ($query) use ($searchFromDateQuery) {
-                return $query->whereDate('created_at', '>=', date('Y-m-d 00:00:00', strtotime($searchFromDateQuery)));
-            });
+        } else {
 
-            $usersQuery->when($searchToDateQuery, function ($query) use ($searchToDateQuery) {
-                return $query->whereDate('created_at', '<=', date('Y-m-d 00:00:00', strtotime($searchToDateQuery)));
-            });
+            $user = Auth::user();
 
-            $users = $usersQuery->paginate(3);
-        } else
-        {
-            $users = User::paginate(3);
+            $usersQuery->where('create_user_id', $user->id);
+
         }
-        return response()->json(['users' => $users]);
+
+        $usersQuery->when($searchNameQuery, function ($query) use ($searchNameQuery) {
+
+            return $query->where('name', 'like', "%$searchNameQuery%");
+
+        });
+
+        $usersQuery->when($searchEmailQuery, function ($query) use ($searchEmailQuery) {
+
+            return $query->where('email', 'like', "%$searchEmailQuery%");
+
+        });
+
+        $usersQuery->when($searchFromDateQuery, function ($query) use ($searchFromDateQuery) {
+
+            return $query->whereDate('created_at', '>=', date('Y-m-d 00:00:00', strtotime($searchFromDateQuery)));
+
+        });
+
+        $usersQuery->when($searchToDateQuery, function ($query) use ($searchToDateQuery) {
+
+            return $query->whereDate('created_at', '<=', date('Y-m-d 00:00:00', strtotime($searchToDateQuery)));
+
+        });
+
+        $users = $usersQuery->paginate(5);
+
+        $limitedUsers = User::all();
+
+        return response()->json(['users' => $users, 'limitedUsers' => $limitedUsers]);
     }
 
+    public function showAllUsers(Request $request)
+    {
+        $searchNameQuery = $request->input('searchName');
+        $searchEmailQuery = $request->input('searchEmail');
+        $searchFromDateQuery = $request->input('searchFromDate');
+        $searchToDateQuery = $request->input('searchToDate');
+
+        $usersQuery = User::query();
+
+        $usersQuery->when($searchNameQuery, function ($query) use ($searchNameQuery) {
+
+            return $query->where('name', 'like', "%$searchNameQuery%");
+
+        });
+
+        $usersQuery->when($searchEmailQuery, function ($query) use ($searchEmailQuery) {
+
+            return $query->where('email', 'like', "%$searchEmailQuery%");
+
+        });
+
+        $usersQuery->when($searchFromDateQuery, function ($query) use ($searchFromDateQuery) {
+
+            return $query->whereDate('created_at', '>=', date('Y-m-d 00:00:00', strtotime($searchFromDateQuery)));
+
+        });
+
+        $usersQuery->when($searchToDateQuery, function ($query) use ($searchToDateQuery) {
+
+            return $query->whereDate('created_at', '<=', date('Y-m-d 00:00:00', strtotime($searchToDateQuery)));
+
+        });
+
+        $users = $usersQuery->paginate(5);
+
+        $allUsers = User::all();
+
+        return response()->json(['users' => $users, 'allUsers' => $allUsers]);
+    }
     /**
      * Store a newly created resource in storage.
      */
     public function store(UserCreateRequest $request)
     {
-        if($request->flg == 'confirm'){
-
+        if($request->flg == 'confirm') {
             $user = User::create($request->all());
 
             $path = storage_path('app/public/images/');
+
             if (!is_dir($path)) {
                 mkdir($path, 0777, true);
             }
 
             if ($request->hasFile('profile')) {
                 $file = $request->file('profile');
-                $randomFileName = Str::random(40);
+                $randomFileName = Str::random(20);
                 $fileName = $randomFileName. '.'. $file->getClientOriginalExtension();
                 $file->storeAs('public/images', $fileName);
                 $user->update(['profile' => $fileName]);
             }
+
             return response()->json(['message' => 'User created successfully','user' =>  new UserResource($user)]);
         }
 
@@ -99,12 +155,12 @@ class UserController extends Controller
     public function update(UserUpdateRequest $request, User $user)
     {
         if ($request->hasFile('profile')) {
-                Storage::delete('public/images/' . $user->profile);
-                $file = $request->file('profile');
-                $randomFileName = Str::random(40);
-                $fileName = $randomFileName. '.'. $file->getClientOriginalExtension();
-                $file->storeAs('public/images', $fileName);
-                $user->update(['profile' => $fileName]);
+            Storage::delete('public/images/' . $user->profile);
+            $file = $request->file('profile');
+            $randomFileName = Str::random(20);
+            $fileName = $randomFileName. '.'. $file->getClientOriginalExtension();
+            $file->storeAs('public/images', $fileName);
+            $user->update(['profile' => $fileName]);
         }
 
         $user->update(Arr::except($request->except('profile'), ['profile']));
