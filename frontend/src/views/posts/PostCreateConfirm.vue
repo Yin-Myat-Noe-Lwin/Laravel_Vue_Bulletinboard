@@ -103,6 +103,34 @@
   import axiosInstance from '@/axios.js';
   import { useRouter } from 'vue-router';
   import { useStore } from 'vuex';
+  import {firebaseConfig} from '@/firebaseConfig'
+  import { initializeApp } from "firebase/app";
+  import { getAnalytics } from "firebase/analytics";
+
+  const app = initializeApp(firebaseConfig);
+
+  const analytics = getAnalytics(app);
+
+  const requestNotificationPermission = async () => {
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        sendNotification();
+      } else {
+        console.warn("Notification permission denied. You may not receive notifications.");
+      }
+    } catch (error) {
+      console.error("Error requesting notification permission:", error);
+    }
+  };
+
+  const sendNotification = () => {
+    const notificationOptions = {
+      body: "Your Post was created",
+    };
+
+    new Notification("Post Create Notification", notificationOptions);
+  };
 
   const store = useStore();
 
@@ -136,6 +164,10 @@
       statusError.value = '';
 
       formData.value.flg = 'confirm';
+
+      store.dispatch('deletePostData');
+
+      requestNotificationPermission();
 
       const response = await axiosInstance.post('/posts', formData.value);
 
