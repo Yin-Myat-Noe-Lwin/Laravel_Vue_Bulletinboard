@@ -169,16 +169,20 @@
 </template>
 
 <script setup>
+
   import { ref, computed } from 'vue';
   import axiosInstance from '@/axios.js';
   import { useRouter } from 'vue-router';
   import { useStore } from 'vuex';
-  import { dataURItoBlob } from '@/dataUriUtils';
+  import { dataURItoFile } from '@/dataUriUtils';
 
+  //for route change
   const router = new useRouter();
 
+  //for vuex
   const store = useStore();
 
+  //get stored userdata filled in user create page
   const userData = store.getters.getUserData;
 
   const formData = ref({
@@ -206,12 +210,10 @@
 
   const profileError = ref('');
 
-  const profileDataURL = localStorage.getItem('file')
+  const profileDataURL = sessionStorage.getItem('file');
 
-  const blobFile = dataURItoBlob(profileDataURL)
-  const imageFile = new File([blobFile], 'image.jpg', {
-    type: 'image/jpeg',
-  });
+   //change profile image into image file
+  const imageFile = dataURItoFile(profileDataURL, 'image.jpg', 'image/jpeg');
 
   formData.value.profile = imageFile
 
@@ -237,7 +239,7 @@
 
       store.dispatch('deleteUserData');
 
-      localStorage.removeItem('file');
+      sessionStorage.removeItem('file');
 
       router.push('/UserList');
 
@@ -284,6 +286,7 @@
 
   function cancelCreateUser() {
 
+    //if cancel, go to user create page
     router.push('/UserCreate');
 
   }

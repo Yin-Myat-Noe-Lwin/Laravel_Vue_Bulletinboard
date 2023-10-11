@@ -26,6 +26,7 @@
                 <div class="row">
                   <div class="col-12 col-md-10">
                     <input v-model="formData.title" type="text" class="form-control" id="title" name="title" disabled>
+                    <div v-if="titleError" class="text-danger">{{ titleError }}</div>
                   </div>
                   <div class="col-12 col-md-2"></div>
                 </div>
@@ -39,6 +40,7 @@
                   <div class="col-12 col-md-10">
                     <input v-model="formData.description" type="text" class="form-control" id="description"
                       name="description" disabled>
+                    <div v-if="descriptionError" class="text-danger">{{ descriptionError }}</div>
                   </div>
                   <div class="col-12 col-md-2"></div>
                 </div>
@@ -53,6 +55,7 @@
                     <div class="form-check form-switch">
                       <input v-model="formData.status" class="form-check-input" type="checkbox" id="status" name="status"
                         true-value="1" false-value="0" disabled>
+                      <div v-if="statusError" class="text-danger">{{ statusError }}</div>
                     </div>
                   </div>
                   <div class="col-12 col-md-2"></div>
@@ -104,22 +107,36 @@
   import { useRoute, useRouter } from 'vue-router';
   import axiosInstance from '@/axios.js';
 
+  //get current logged in user
+  const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user')) || null;
+
   const store = useStore();
 
   const router = new useRouter();
 
   const route = new useRoute();
 
-  const postEditData = store.getters.getPostEditData;
+  //get stored data  from post edit page
+  const postEditData = ref(null);
+
+  postEditData.value = store.getters.getPostEditData;
+
+  console.log(postEditData.value)
 
   const formData = ref({
-    title: postEditData.title,
-    description: postEditData.description,
-    status: postEditData.status,
+    title: postEditData.value.title,
+    description: postEditData.value.description,
+    status: postEditData.value.status,
     flg: 'unconfirm',
-    create_user_id: postEditData.create_user_id,
-    updated_user_id: postEditData.updated_user_id
+    create_user_id: postEditData.value.create_user_id,
+    updated_user_id: user.id
   })
+
+  const titleError = ref('');
+
+  const descriptionError = ref('');
+
+  const statusError = ref('');
 
   async function confirmEditPost() {
 
@@ -127,7 +144,8 @@
 
       formData.value.flg = 'confirm';
 
-      store.dispatch('deletePostEditData')
+      //delete stored data after update
+      store.dispatch('deletePostEditData');
 
       const response = await axiosInstance.put(`/posts/${route.params.postID}`, formData.value);
 
@@ -137,13 +155,53 @@
 
     } catch (error) {
 
-      console.error(error);
+      if (error.response) {
 
+      const { errors } = error.response.data;
+
+      if (errors) {
+
+        if (errors.title) {
+
+          titleError.value = errors.title[0] || '';
+
+        }
+        if (errors.description) {
+
+          descriptionError.value = errors.description[0] || '';
+
+        }
+        if (errors.status) {
+
+          statusError.value = errors.status[0] || '';
+
+        }
+      }
+      }
+      console.error(error);
     }
   }
 
+  const removeDataFromSessionStorage = () => {
+    store.dispatch('deletePostEditData');
+  };
+
+  const beforeRouteLeave = () => {
+
+    router.beforeEach((to, from, next) => {
+      if (from.path.toLowerCase().startsWith('/posteditconfirm/') && !to.path.toLowerCase().startsWith('/postedit/')) {
+        removeDataFromSessionStorage();
+      }
+      next();
+  });
+
+  };
+
+  beforeRouteLeave();
+
   function cancelCreatePost() {
 
+    //if cancel, go back to edit page
     router.push(`/PostEdit/${route.params.postID}`)
 
   }

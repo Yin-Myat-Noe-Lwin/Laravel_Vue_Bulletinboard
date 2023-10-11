@@ -5,7 +5,7 @@ const vuexLocalStorage = new VuexPersist({
 
   key: 'APPDATA',
 
-  storage: window.localStorage,
+  storage: window.sessionStorage,
 
   reducer: (state) => ({
     userData: state.userData,

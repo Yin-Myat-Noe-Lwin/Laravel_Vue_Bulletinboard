@@ -38,8 +38,8 @@
               <div class="col-12 col-md-8">
                 <div class="row">
                   <div class="col-12 col-md-10">
-                    <input v-model="formData.description" type="text" class="form-control" id="description"
-                      name="description" disabled>
+                    <textarea v-model="formData.description" class="form-control" id="description" name="description"
+                      rows="3" disabled></textarea>
                     <div v-if="descriptionError" class="text-danger">{{ descriptionError }}</div>
                   </div>
                   <div class="col-12 col-md-2"></div>
@@ -86,7 +86,7 @@
             <div class="mb-3 row">
               <div class="col-12 col-md-4"></div>
               <div class="col-12 col-md-8">
-                <button type="submit" class="btn btn-primary" @click="confirmCreateUser">Confirm</button>
+                <button type="submit" class="btn btn-primary">Confirm</button>
                 <button type="button" class="btn btn-secondary mx-3" @click="cancelCreatePost">Cancel</button>
               </div>
             </div>
@@ -107,6 +107,13 @@
   import { initializeApp } from "firebase/app";
   import { getAnalytics } from "firebase/analytics";
 
+  //for route change
+  const router = new useRouter();
+
+  //for vuex
+  const store = useStore();
+
+  //initialize firebase browser notification configuration
   const app = initializeApp(firebaseConfig);
 
   const analytics = getAnalytics(app);
@@ -115,6 +122,7 @@
     try {
       const permission = await Notification.requestPermission();
       if (permission === "granted") {
+        //if permission granted, send browser notification
         sendNotification();
       } else {
         console.warn("Notification permission denied. You may not receive notifications.");
@@ -132,10 +140,7 @@
     new Notification("Post Create Notification", notificationOptions);
   };
 
-  const store = useStore();
-
-  const router = new useRouter();
-
+  //get stored post data from create post page
   const postData = store.getters.getPostData;
 
   const formData = ref({
@@ -165,8 +170,10 @@
 
       formData.value.flg = 'confirm';
 
+      //create is confirmed then delete stored post data
       store.dispatch('deletePostData');
 
+      //after post is created, user will get browser notification
       requestNotificationPermission();
 
       const response = await axiosInstance.post('/posts', formData.value);
@@ -206,6 +213,7 @@
 
   function cancelCreatePost() {
 
+    //if cancel, go to create post page
     router.push('PostCreate')
 
   }

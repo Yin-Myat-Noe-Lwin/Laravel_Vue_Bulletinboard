@@ -29,10 +29,10 @@ class UserCreateRequest extends FormRequest
             'password' => ['required','string', Password::min(8), 'regex:/^(?=.*[A-Z])(?=.*[!@#\$%\^&\*]).+$/' ,'confirmed' ],
             'password_confirmation' => ['required'],
             'profile' => ['required', 'image', 'mimes:jpeg,png,jpg,jfif' , 'max:2048'],
-            'type' => ['required', 'in:0,1'],
-            'phone' => ['nullable', 'regex:/^(09-|01-|\+?959-)\d{9}$/'],
-            'address' => ['nullable','string', 'max:255'],
-            'dob' => ['nullable', 'string'],
+            'type' => ['required', 'string', 'in:0,1'],
+            'phone' => ['nullable', 'string', 'regex:/^(09-|01-|\+?959-)\d{9}$/'],
+            'address' => ['required','string', 'max:255'],
+            'dob' => ['nullable', 'date'],
             'create_user_id' => 'required',
             'updated_user_id' => 'required'
         ];
@@ -47,6 +47,7 @@ class UserCreateRequest extends FormRequest
             'password.required' => 'Password can\'t be blank.',
             'password.confirmed' => 'Password and Password confirmation do not match.',
             'password_confirmation.required' => 'Password can\'t be blank.',
+            'address.required' => 'Address can\'t be blank.',
             'profile.required' => 'Profile can\'t be blank.',
             'profile.max' => 'The uploaded image must be less than 2 MB in size.',
         ];

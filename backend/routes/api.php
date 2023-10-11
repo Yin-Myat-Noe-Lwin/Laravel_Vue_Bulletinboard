@@ -18,28 +18,30 @@ use App\Http\Controllers\UserController;
 */
 Route::middleware('auth:sanctum')->group(function () {
 
-    Route::get('/users', [UserController::class, 'index']);
-    Route::post('/users', [UserController::class, 'store']);
-    Route::get('/users/{user}', [UserController::class, 'show']);
+    //get limited Users according to user roles after logged in
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
     Route::get('/users/{user}/{profile}', [UserController::class, 'getUserImage']);
-    Route::put('/users/{user}', [UserController::class, 'update']);
-    Route::delete('/users/{user}', [UserController::class, 'destroy']);
+    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     Route::get('/export', [UserController::class, 'export']);
-    Route::post('/users/{user}/changePassword', [UserController::class, 'changePassword']);
+    Route::post('/users/{user}/changePassword', [UserController::class, 'changePassword'])->name('users.changePassword');
 
-    Route::get('/posts', [PostController::class, 'index']);
-    Route::get('/posts/{post}', [PostController::class, 'show']);
-    Route::post('/posts', [PostController::class, 'store']);
-    Route::put('/posts/{post}', [PostController::class, 'update']);
-    Route::delete('/posts/{post}', [PostController::class, 'destroy']);
-    Route::get('/export', [PostController::class, 'export']);
-    Route::post('/import',[PostController::class,'import']);
+    Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
+    Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
+    Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
+    Route::put('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
+    Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
+
+    Route::post('/import',[PostController::class,'import'])->name('import');
 
     Route::post('/logout', [LoginController::class, 'logout']);
 
 });
 
-Route::get('/showAllUsers', [UserController::class, 'showAllUsers']);
+//get all Users when not logged in
+Route::get('/showAllUsers', [UserController::class, 'showAllUsers'])->name('showAllUsers');
 
 Route::post('/register', [UserController::class, 'store']);
 
@@ -50,3 +52,5 @@ Route::post('/forgotPassword', [PasswordController::class, 'forgotPassword']);
 Route::post('/resetPassword', [PasswordController::class, 'resetPassword']);
 
 Route::get('/showActivePosts', [PostController::class, 'showActivePosts']);
+
+Route::get('/export', [PostController::class, 'export'])->name('export');

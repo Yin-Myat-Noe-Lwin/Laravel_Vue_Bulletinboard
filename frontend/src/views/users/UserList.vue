@@ -30,7 +30,7 @@
                 <div class="mb-3 row">
                   <label for="dob" class="text-right-label col-12 col-md-3 col-form-label form-custom-label">From:</label>
                   <div class="col-12 col-md-9">
-                    <input v-model="searchFromDateQuery" type="date" class="form-control form-custom-border" id="dob"
+                    <input v-model="searchFromDateQuery" type="date" class="form-control form-custom-border" id="from_created_at"
                       name="dob" />
                   </div>
                 </div>
@@ -39,7 +39,7 @@
                 <div class="mb-3 row">
                   <label for="dob" class="text-right-label col-12 col-md-3 col-form-label form-custom-label">To:</label>
                   <div class="col-12 col-md-9">
-                    <input v-model="searchToDateQuery" type="date" class="form-control form-custom-border" id="dob"
+                    <input v-model="searchToDateQuery" type="date" class="form-control form-custom-border" id="to_created_at"
                       name="dob" />
                   </div>
                 </div>
@@ -71,8 +71,9 @@
           <tbody v-if="users.length > 0">
             <tr v-for="user in users" :key="user.id">
               <th scope="row">{{ user.id }}</th>
-              <td class="text-success" data-bs-toggle="modal" data-bs-target='#userDetailBtn'
+              <td v-if="currentUser" class="text-success" data-bs-toggle="modal" data-bs-target='#userDetailBtn'
               @click="showUserDetail(user)">{{ user.name }}</td>
+              <td v-else>{{ user.name }}</td>
               <td>{{ user.email }}</td>
               <td>{{ findCreatedUserName(user.create_user_id) }}</td>
               <td>{{ user.type === "1" ? 'User' : 'Admin' }}</td>
@@ -83,7 +84,10 @@
               <td>{{ formatDate(user.updated_at) }}</td>
               <td>
                 <button v-if="currentUser" type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#userDeleteBtn"
-                  :disabled="checkUserLoggedIn(user.id)" @click="showDeleteConfirmation(user)">
+                  :disabled= "!currentUser || checkUserLoggedIn(user.id)" @click="showDeleteConfirmation(user)">
+                  Delete
+                </button>
+                <button v-else type="button" class="btn btn-danger" disabled>
                   Delete
                 </button>
               </td>
@@ -316,7 +320,8 @@
   import Paginate from 'vuejs-paginate-next';
   import { formatDate } from '@/dateUtils';
 
-  const currentUser = localStorage.getItem('user');
+  //get current logged in user
+  const currentUser = localStorage.getItem('user') || sessionStorage.getItem('user') || null;
 
   const users = ref([]);
 
@@ -326,16 +331,15 @@
 
   const profileImageUrl = ref(null);
 
+  //user data search
   const searchNameQuery = ref('');
   const searchEmailQuery = ref('');
   const searchFromDateQuery = ref('');
   const searchToDateQuery = ref('');
 
   const getLimitedUsers = () => {
-    axiosInstance
-      .get(`/users`)
-      .then((response) => {
-        allUsers.value = response.data.limitedUsers;
+    axiosInstance.get(`/users`).then((response) => {
+          allUsers.value = response.data.allUsers;
       })
       .catch((error) => {
         console.error(error);
@@ -343,9 +347,7 @@
   }
 
   const getAllUsers = () => {
-    axiosInstance
-      .get(`/showAllUsers`)
-      .then((response) => {
+    axiosInstance.get(`/showAllUsers`).then((response) => {
         allUsers.value = response.data.allUsers;
       })
       .catch((error) => {
@@ -354,27 +356,21 @@
   }
 
   const fetchLimitedUsers = (page = 1) => {
-    axiosInstance
-      .get(`/users?page=${page}`)
-      .then((response) => {
+    axiosInstance.get(`/users?page=${page}`).then((response) => {
         users.value = response.data.users.data;
         totalPages.value = response.data.users.last_page;
       })
       .catch((error) => {
-        alert('Error fetching users');
         console.error(error);
       });
   };
 
   const fetchAllUsers = (page = 1) => {
-    axiosInstance
-      .get(`showAllUsers/?page=${page}`)
-      .then((response) => {
+    axiosInstance.get(`showAllUsers/?page=${page}`).then((response) => {
         users.value = response.data.users.data;
         totalPages.value = response.data.users.last_page;
       })
       .catch((error) => {
-        alert('Error fetching users');
         console.error(error);
       });
   };
@@ -392,9 +388,11 @@
   onMounted(() => {
 
     if(currentUser) {
+      //for loggedin user and admin
       getLimitedUsers();
       fetchLimitedUsers();
     } else {
+      //unloggedin user
       getAllUsers();
       fetchAllUsers();
     }
@@ -433,7 +431,7 @@
   };
 
   const closeUerDetail = () => {
-    selectedUser.value = null;
+    selectedUser.value = '';
     showModalUserDetail.value = false;
   };
 
@@ -443,13 +441,12 @@
   };
 
   const closeDeleteConfirmation = () => {
-    selectedUser.value = null;
+    selectedUser.value = '';
     showModalDelete.value = false;
   };
 
   const deleteUser = (userID) => {
-    axiosInstance
-      .delete(`/users/${userID}`)
+    axiosInstance.delete(`/users/${userID}`)
       .then(() => {
         closeDeleteConfirmation()
         window.location.reload()

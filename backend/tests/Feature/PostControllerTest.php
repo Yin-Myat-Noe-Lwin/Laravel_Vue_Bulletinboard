@@ -1,0 +1,103 @@
+<?php
+
+namespace Tests\Feature;
+
+use Tests\TestCase;
+use App\Models\Post;
+use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
+
+class PostControllerTest extends TestCase
+{
+    use DatabaseTruncation;
+
+    protected $user;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->user = User::factory()->create();
+
+        $this->actingAs($this->user);
+    }
+
+    public function test_index_post(): void
+    {
+        Post::factory()->count(5)->create();
+
+        $response = $this->get(route('posts.index'));
+
+        $response->assertStatus(200);
+    }
+
+    public function test_create_post(): void
+    {
+        $postData = [
+            'title' => 'Sample Title',
+            'description' => 'This is a sample description.',
+            'status' => 1,
+            'create_user_id' => $this->user->id,
+            'updated_user_id' => $this->user->id
+        ];
+
+        $response = $this->post(route('posts.store'), $postData);
+
+        $response->assertStatus(200);
+    }
+
+    public function test_show_post(): void
+    {
+        $post = Post::factory()->create();
+
+        $response = $this->get(route('posts.show', ['post' => $post->id]));
+
+        $response->assertStatus(200);
+    }
+
+    public function test_update_post(): void
+    {
+        $post = Post::factory()->create();
+
+        $updatedPostData = [
+            'title' => 'Updated Title',
+            'description' => 'Updated Description.',
+            'status' => 1,
+            'create_user_id' => 1,
+            'updated_user_id' => 1
+        ];
+
+        $response = $this->put(route('posts.update', ['post' => $post->id]), $updatedPostData);
+
+        $response->assertStatus(200);
+    }
+
+    public function test_delete_post(): void
+    {
+        $post = Post::factory()->create();
+
+        $response = $this->delete(route('posts.destroy', ['post' => $post->id]));
+
+        $response->assertStatus(200);
+    }
+
+    public function test_export_post(): void
+    {
+        Post::factory()->count(5)->create();
+
+        $response = $this->get(route('export'));
+
+        $response->assertStatus(200);
+    }
+
+    public function test_import_post(): void
+    {
+        $file = UploadedFile::fake()->create('posts.csv');
+
+        $response = $this->post(route('import'), ['file' => $file]);
+
+        $response->assertStatus(200);
+    }
+}

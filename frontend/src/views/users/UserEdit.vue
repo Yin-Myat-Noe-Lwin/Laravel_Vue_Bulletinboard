@@ -75,6 +75,7 @@
                 <div class="row">
                   <div class="col-12 col-md-10">
                     <input v-model="formData.address" type="text" class="form-control" id="address" name="address">
+                    <div v-if="addressError" class="text-danger">{{ addressError }}</div>
                   </div>
                   <div class="col-12 col-md-2"></div>
                 </div>
@@ -161,23 +162,27 @@
   import { ref, onMounted } from 'vue';
   import axiosInstance from '@/axios.js';
   import { useRouter } from 'vue-router';
-  import { dataURItoBlob } from '@/dataUriUtils';
+  import { dataURItoFile } from '@/dataUriUtils';
 
-  const user = JSON.parse(localStorage.getItem('user'));
+  //for route change
+  const router = new useRouter();
+
+  //get current logged in user
+  const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user')) || null;
 
   const userProfileImageUrl = ref(null);
 
   const userProfileImagePreviewUrl = ref(null);
 
-  const profileInput = ref(null);
+  const profileInput = ref('');
 
-  const router = new useRouter();
+  const nameError = ref('');
 
-  const nameError = ref('')
+  const emailError = ref('');
 
-  const emailError = ref('')
+  const addressError = ref('');
 
-  const profileError = ref('')
+  const profileError = ref('');
 
   const formData = ref({
     name: user.name,
@@ -187,7 +192,7 @@
     dob: user.dob,
     type: user.type,
     profile: null,
-    create_user_id: user.id,
+    create_user_id: user.create_user_id,
     updated_user_id: user.id,
     _method: 'put'
   });
@@ -215,6 +220,7 @@
 
   };
 
+  //check and control user profile input image
   function handleImageUpload(event) {
 
     const imgFile = event.target.files[0];
@@ -225,7 +231,7 @@
 
     if (imgSize > maxSize) {
 
-      profileError.value = "Image file size must be less than 2MB"
+      profileError.value = "Image file size must be less than 2MB";
 
       formData.value.profile = '';
 
@@ -253,13 +259,10 @@
 
         const dataURI =  userProfileImagePreviewUrl.value;
 
-        const blobFile = dataURItoBlob(dataURI);
+        //change profile image into image file
+        const imageFile = dataURItoFile(dataURI, 'image.jpg', 'image/jpeg');
 
-        const imageFile = new File([blobFile], 'image.jpg', {
-          type: 'image/jpeg',
-        });
-
-        formData.value.profile = imageFile
+        formData.value.profile = imageFile;
 
       }
 
@@ -275,7 +278,7 @@
 
       const updatedUserData = response.data.user;
 
-      localStorage.setItem('user', JSON.stringify(updatedUserData));
+      sessionStorage.setItem('user', JSON.stringify(updatedUserData));
 
       router.push('/UserProfile');
 
@@ -299,6 +302,11 @@
             emailError.value = errors.email[0] || '';
 
           }
+          if (errors.address) {
+
+            addressError.value = errors.address[0] || '';
+
+          }
           if (errors.profile) {
 
             profileError.value = errors.profile[0] || '';
@@ -318,30 +326,30 @@
 
   function clearUserEditData() {
 
-    formData.value.name = user.name
+    formData.value.name = user.name;
 
-    formData.value.email = user.email
+    formData.value.email = user.email;
 
-    formData.value.phone = user.phone
+    formData.value.phone = user.phone;
 
-    formData.value.dob = user.dob
+    formData.value.dob = user.dob;
 
-    formData.value.address = user.address
+    formData.value.address = user.address;
 
-    formData.value.type = user.type
+    formData.value.type = user.type;
 
-    userProfileImagePreviewUrl.value = ''
+    userProfileImagePreviewUrl.value = '';
 
-    profileInput.value.value = '';
+    profileInput.value = '';
   }
 
   function removeImg() {
 
-    profileInput.value.value = '';
+    profileInput.value = '';
 
-    localStorage.removeItem('editFile');
+    sessionStorage.removeItem('editFile');
 
-    userProfileImagePreviewUrl.value = null
+    userProfileImagePreviewUrl.value = null;
 
   }
 

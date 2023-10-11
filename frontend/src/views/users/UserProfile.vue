@@ -80,7 +80,7 @@
   import axiosInstance from '@/axios.js';
   import { formatDate } from '@/dateUtils';
 
-  const user = JSON.parse(localStorage.getItem('user'));
+  const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user')) || null;
 
   const userProfileImageUrl = ref(null);
 

@@ -40,7 +40,7 @@
                 <div class="row">
                   <div class="col-12 col-md-6">
                     <div class="form-check">
-                      <input class="form-check-input" type="checkbox" value="" id="rememberme" />
+                      <input class="form-check-input" type="checkbox" id="rememberMe" v-model="rememberMe" />
                       <label class="form-check-label" for="flexCheckDefault">
                         remember me
                       </label>
@@ -80,68 +80,105 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import axiosInstance from "@/axios.js";
-import { useRouter } from "vue-router";
 
-const formData = ref({
-  email: "",
-  password: "",
-});
+  import { ref, watch  } from "vue";
+  import axiosInstance from "@/axios.js";
+  import { useRouter } from "vue-router";
 
-const emailError = ref("");
+  //for route change
+  const router = useRouter();
 
-const passwordError = ref("");
+  const rememberMe = ref(false);
 
-const alertError = ref("");
+  watch(rememberMe, (newVal) => {
+    formData.value.rm = newVal
+  });
 
-const router = useRouter();
+  const formData = ref({
+    email: '',
+    password: '',
+    rm: rememberMe.value
+  });
 
-async function login() {
-  try {
-    const response = await axiosInstance.post("/login", formData.value);
+  const emailError = ref('');
 
-    emailError.value = "";
+  const passwordError = ref('');
 
-    passwordError.value = "";
+  const alertError = ref('');
 
-    alertError.value = "";
+  async function login() {
 
-    console.log("Logged in successfully!", response.data);
+    try {
+      const response = await axiosInstance.post(`/login`, formData.value);
 
-    localStorage.setItem("token", response.data.token);
+      console.log(formData.value)
 
-    localStorage.setItem("user", JSON.stringify(response.data.user));
+      emailError.value = '';
 
-    router.push("/");
+      passwordError.value = '';
 
-    setTimeout(() => {
-      window.location.reload();
-    }, 5);
-  } catch (error) {
-    if (error.response) {
-      const { errors } = error.response.data;
+      alertError.value = '';
 
-      if (errors) {
-        if (errors.email) {
-          alertError.value = "";
+      console.log("Logged in successfully!", response.data);
 
-          emailError.value = errors.email[0] || "";
-        }
-        if (errors.password) {
-          alertError.value = "";
+      if(formData.value.rm) {
 
-          passwordError.value = errors.password[0] || "";
-        }
+        localStorage.setItem("token", response.data.token);
+
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+
       } else {
-        emailError.value = "";
 
-        passwordError.value = "";
+        sessionStorage.setItem("token", response.data.token);
 
-        alertError.value = error.response.data.error;
+        sessionStorage.setItem("user", JSON.stringify(response.data.user));
+
       }
+
+      router.push("/");
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 5);
+
+    } catch (error) {
+
+      if (error.response) {
+
+        const { errors } = error.response.data;
+
+        if (errors) {
+
+          if (errors.email) {
+
+            alertError.value = "";
+
+            emailError.value = errors.email[0] || "";
+
+          }
+          if (errors.password) {
+
+            alertError.value = "";
+
+            passwordError.value = errors.password[0] || "";
+
+          }
+        } else {
+
+          emailError.value = "";
+
+          passwordError.value = "";
+
+          alertError.value = error.response.data.error;
+
+        }
+
+      }
+
+      console.error("Login failed:", error);
+
     }
-    console.error("Login failed:", error);
+
   }
-}
+
 </script>

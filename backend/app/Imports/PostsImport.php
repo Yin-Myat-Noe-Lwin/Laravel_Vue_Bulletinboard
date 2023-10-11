@@ -21,10 +21,19 @@ class PostsImport implements ToCollection,  WithValidation,  WithHeadingRow
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string' , 'max:255' ,Rule::unique('posts', 'title')->whereNull('deleted_at') ],
-            'description' => ['required', 'string'],
+            'title' => ['required', 'max:255' ,Rule::unique('posts', 'title')->whereNull('deleted_at') ],
+            'description' => ['required'],
             'status' => ['required', Rule::in([0, 1])]
         ];
+    }
+
+    public function messages()
+    {
+            return [
+                'title.required' => 'Title can\'t be blank.',
+                'title.max' => '255 characters is the maximum allowed.',
+                'description.required' => 'Description can\'t be blank.'
+            ];
     }
 
     public function collection(Collection $rows)

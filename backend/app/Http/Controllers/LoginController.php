@@ -26,11 +26,21 @@ class LoginController extends Controller
 
         }
 
+        $rememberMe = $request->input('rm');
+
+        info($rememberMe);
+
+        info($request->input('rm'));
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        $cookie = cookie('token', $token, 60 * 24);
+        $cookie = cookie('token', $token, 60 * 24 * 30 );
 
-        return response()->json(['message' => 'Login Successfully!','user' => new UserResource($user), 'token' => $token])->withCookie($cookie);
+        return response()->json([
+            'message' => 'Login Successfully!',
+            'user' => new UserResource($user),
+            'token' => $token
+        ])->withCookie($cookie);
     }
 
     public function logout(Request $request)

@@ -24,25 +24,32 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
+        //search params for user data
         $searchNameQuery = $request->input('searchName');
+
         $searchEmailQuery = $request->input('searchEmail');
+
         $searchFromDateQuery = $request->input('searchFromDate');
+
         $searchToDateQuery = $request->input('searchToDate');
 
         $usersQuery = User::query();
 
+        //if admin, show all users expect deleted, if user, show users created by him or herself
         if (Auth::user()->isAdmin()) {
 
-            $usersQuery->paginate(5);
+           //show all Users
 
         } else {
 
+            //show users created by loggedin user
             $user = Auth::user();
 
             $usersQuery->where('create_user_id', $user->id);
 
         }
 
+        //search with name,email, created date
         $usersQuery->when($searchNameQuery, function ($query) use ($searchNameQuery) {
 
             return $query->where('name', 'like', "%$searchNameQuery%");
@@ -57,25 +64,31 @@ class UserController extends Controller
 
         $usersQuery->when($searchFromDateQuery, function ($query) use ($searchFromDateQuery) {
 
-            return $query->whereDate('created_at', '>=', date('Y-m-d 00:00:00', strtotime($searchFromDateQuery)));
+            $formattedFromDate = date('Y-m-d 00:00:00', strtotime($searchFromDateQuery));
+
+            return $query->whereDate('created_at', '>=', $formattedFromDate($searchFromDateQuery) );
 
         });
 
         $usersQuery->when($searchToDateQuery, function ($query) use ($searchToDateQuery) {
 
-            return $query->whereDate('created_at', '<=', date('Y-m-d 00:00:00', strtotime($searchToDateQuery)));
+            $formattedToDate = date('Y-m-d 00:00:00', strtotime($searchToDateQuery));
+
+            return $query->whereDate('created_at', '<=', $formattedToDate($searchToDateQuery));
 
         });
 
         $users = $usersQuery->paginate(5);
 
-        $limitedUsers = User::all();
+        $allUsers = User::all();
 
-        return response()->json(['users' => $users, 'limitedUsers' => $limitedUsers]);
+        //allUsers for user data, users for pagination
+        return response()->json(['users' => $users, 'allUsers' => $allUsers]);
     }
 
     public function showAllUsers(Request $request)
     {
+        //search params for user data
         $searchNameQuery = $request->input('searchName');
         $searchEmailQuery = $request->input('searchEmail');
         $searchFromDateQuery = $request->input('searchFromDate');
@@ -83,6 +96,7 @@ class UserController extends Controller
 
         $usersQuery = User::query();
 
+        //search with name,email, created date
         $usersQuery->when($searchNameQuery, function ($query) use ($searchNameQuery) {
 
             return $query->where('name', 'like', "%$searchNameQuery%");
@@ -111,6 +125,7 @@ class UserController extends Controller
 
         $allUsers = User::all();
 
+        //allUsers for user data, users for pagination
         return response()->json(['users' => $users, 'allUsers' => $allUsers]);
     }
     /**
@@ -119,20 +134,31 @@ class UserController extends Controller
     public function store(UserCreateRequest $request)
     {
         if($request->flg == 'confirm') {
+
             $user = User::create($request->all());
 
             $path = storage_path('app/public/images/');
 
+            //check if there is folder name "images", if not, create "images" folder
             if (!is_dir($path)) {
+
                 mkdir($path, 0777, true);
+
             }
 
+            //get user input profile image , change custom file name and store under "images" folder
             if ($request->hasFile('profile')) {
+
                 $file = $request->file('profile');
+
                 $randomFileName = Str::random(20);
+
                 $fileName = $randomFileName. '.'. $file->getClientOriginalExtension();
+
                 $file->storeAs('public/images', $fileName);
+
                 $user->update(['profile' => $fileName]);
+
             }
 
             return response()->json(['message' => 'User created successfully','user' =>  new UserResource($user)]);
@@ -177,6 +203,10 @@ class UserController extends Controller
             Storage::delete('public/images/' . $user->profile);
         }
 
+        $loggedinUser = Auth::user();
+
+        $user->update(['deleted_user_id' => $loggedinUser->id]);
+
         $user->delete();
 
         return response()->json(['message' => 'User deleted successfully']);
@@ -190,12 +220,17 @@ class UserController extends Controller
     public function getUserImage(User $user)
     {
         $path = 'public/images/' . $user->profile;
+
         $storagePath = storage_path('app/' . $path);
 
         if (file_exists($storagePath)) {
+
             return response()->file($storagePath);
+
         } else {
+
             return response()->json(['error' => 'Image not found'], 404);
+
         }
     }
 

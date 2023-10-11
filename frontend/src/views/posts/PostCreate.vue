@@ -72,7 +72,7 @@
               </div>
             </div>
             <div class="mb-3 row visually-hidden">
-              <label for="create_user_id" class="text-right-label col-12 col-md-4 col-form-label">Updated User</label>
+              <label for="updated_user_id" class="text-right-label col-12 col-md-4 col-form-label">Updated User</label>
               <div class="col-12 col-md-8">
                 <div class="row">
                   <div class="col-12 col-md-10">
@@ -107,12 +107,16 @@
 
   import { useStore } from 'vuex';
 
-  const user = JSON.parse(localStorage.getItem('user'));
-
+  //for route change
   const router = useRouter();
 
+  //for vuex
   const store = useStore();
 
+  //get current logged in user
+  const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user')) || null;
+
+  //check if there is previous saved post data
   const postData = store.getters.getPostData;
 
   const formData = ref({
@@ -144,6 +148,7 @@
 
       console.log('Created post successfully!', response.data);
 
+      //store created post data
       store.dispatch('updatePostData', formData);
 
       router.push('/PostCreateConfirm');
@@ -183,6 +188,13 @@
 
     formData.value.description = ''
 
+    titleError.value = '';
+
+    descriptionError.value = '';
+
+    statusError.value = '';
+
+    //delete stored post data
     store.dispatch('deletePostData')
   }
 

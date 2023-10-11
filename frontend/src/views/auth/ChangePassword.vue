@@ -74,15 +74,17 @@
   import axiosInstance from "@/axios.js";
   import { useRouter } from "vue-router";
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  //for route change
+  const router = useRouter();
+
+  //get current logged in user
+  const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user')) || null;
 
   const formData = ref({
     old_password: "",
     password: "",
     password_confirmation: "",
   });
-
-  const router = useRouter();
 
   const currentPasswordError = ref("");
 

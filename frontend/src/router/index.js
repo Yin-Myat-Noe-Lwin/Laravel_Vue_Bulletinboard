@@ -18,7 +18,8 @@ import ResetPassword from '../views/auth/ResetPassword.vue'
 import AppLogin from '../views/auth/AppLogin.vue'
 import UploadCSV from '../views/common/UploadCSV.vue'
 
-const user = JSON.parse(localStorage.getItem('user'))
+//get current logged in user
+const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user')) || null;
 
 const router = createRouter({
 
@@ -176,7 +177,7 @@ router.beforeEach(async (to, from, next) => {
 
   function isLoggedIn() {
 
-    const user = JSON.parse(localStorage.getItem('user'));
+    const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user')) || null;
 
     return user !== null;
   }

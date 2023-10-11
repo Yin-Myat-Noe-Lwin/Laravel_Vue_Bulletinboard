@@ -20,7 +20,7 @@ return new class extends Migration
             $table->foreign('create_user_id')->references('id')->on('users');
             $table->unsignedBigInteger('updated_user_id');
             $table->foreign('updated_user_id')->references('id')->on('users');
-            $table->integer('deleted_user_id')->nullable();
+            $table->unsignedBigInteger('deleted_user_id')->nullable();
             $table->timestamps();
             $table->softDeletes()->nullable();
         });

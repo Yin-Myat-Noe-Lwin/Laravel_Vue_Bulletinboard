@@ -33,12 +33,14 @@ class PasswordController extends Controller
 
             if ($passwordReset) {
 
+                //if user email has already password reset token, update it with new token
                 $passwordReset->update([
                     'token' => $token,
                 ]);
 
             } else {
 
+                //if not, create new password reset token
                 $passwordReset = new PasswordReset();
                 $passwordReset->email = $request->email;
                 $passwordReset->token = $token;
@@ -46,6 +48,7 @@ class PasswordController extends Controller
 
             }
 
+            //create mail data required for password reset
             $mailData = [
                 'token' => $token,
                 'email' => $request->email,
@@ -53,15 +56,17 @@ class PasswordController extends Controller
                 'userId' => $userId
             ];
 
+            //send mail
             Mail::to($request->email)->send(new PasswordResetMail($mailData));
 
-            return response()->json(['message' => 'Password reset email sent successfully!'], 200);
+            return response()->json(['message' => 'Email sent with password reset instructions.'], 200);
 
         }
     }
 
     public function resetPassword(ResetPasswordRequest $request)
     {
+        //find user with id
         $user = User::where('id', $request->userId)->first();
 
         $userEmail = $user->email;
@@ -76,13 +81,15 @@ class PasswordController extends Controller
                                         ->where('token', $request->token)
                                         ->first();
 
+        //change user password
         $user->password = Hash::make($request->password);
 
         $user->save();
 
+        //delete password reset token
         $passwordReset->delete();
 
-        return response()->json(['message' => 'Password reset successfully!'], 200);
+        return response()->json(['message' => 'Password has been reset.'], 200);
     }
 
 }

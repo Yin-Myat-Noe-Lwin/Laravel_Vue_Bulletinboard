@@ -1,4 +1,4 @@
-export const dataURItoBlob = (dataURI) => {
+export const dataURItoFile = (dataURI, fileName = 'image.jpg', fileType = 'image/jpeg') => {
 
   const byteString = atob(dataURI.split(',')[1]);
 
@@ -14,6 +14,8 @@ export const dataURItoBlob = (dataURI) => {
 
   }
 
-  return new Blob([ab], { type: mimeString });
+  const blobFile = new Blob([ab], { type: mimeString });
+
+  return new File([blobFile], fileName, { type: fileType });
 
 };

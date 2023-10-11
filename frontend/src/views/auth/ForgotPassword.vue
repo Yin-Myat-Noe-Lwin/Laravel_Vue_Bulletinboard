@@ -6,6 +6,9 @@
           Forgot Password?
         </div>
         <div class="card-body">
+          <div v-if="successMessage">
+            {{ successMessage }}
+          </div>
           <div v-if="alertError" class="alert alert-danger" role="alert">
             {{ alertError }}
           </div>
@@ -40,6 +43,10 @@
 
   import { ref } from 'vue';
   import axiosInstance from '@/axios.js';
+  import { useRouter } from "vue-router";
+
+   //for route change
+   const router = useRouter();
 
   const formData = ref({
     email: ''
@@ -48,6 +55,8 @@
   const emailError = ref('');
 
   const alertError = ref('');
+
+  const successMessage = ref('');
 
   async function forgotPassword() {
 
@@ -61,6 +70,10 @@
 
       console.log('Forgot password successfully!', response.data);
 
+      console.log(response.data.message)
+
+      router.push("/login");
+
     } catch (error) {
 
       if (error.response) {
@@ -70,6 +83,8 @@
         if (errors) {
 
           if (errors.email) {
+
+            alertError.value = '';
 
             emailError.value = errors.email[0] || '';
 

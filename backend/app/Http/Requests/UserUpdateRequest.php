@@ -32,7 +32,7 @@ class UserUpdateRequest extends FormRequest
             'type' => ['required', 'in:0,1'],
             'phone' => ['nullable', 'regex:/^(09-|01-|\+?959-)\d{9}$/'],
             'address' => ['nullable','string', 'max:255'],
-            'dob' => ['nullable', 'string'],
+            'dob' => ['nullable', 'date'],
             'create_user_id' => 'required',
             'updated_user_id' => 'required'
         ];

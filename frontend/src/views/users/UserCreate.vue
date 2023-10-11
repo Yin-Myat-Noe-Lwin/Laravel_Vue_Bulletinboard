@@ -109,7 +109,7 @@
               </div>
             </div>
             <div class="mb-3 row">
-              <label for="address" class="text-right-label col-12 col-md-4 col-form-label">Address</label>
+              <label for="address" class="text-right-label col-12 col-md-4 col-form-label">Address<span class="text-danger">*</span></label>
               <div class="col-12 col-md-8">
                 <div class="row">
                   <div class="col-12 col-md-10">
@@ -191,15 +191,18 @@
   import axiosInstance from '@/axios.js';
   import { useRouter } from 'vue-router';
   import { useStore } from 'vuex';
-  import { dataURItoBlob } from '@/dataUriUtils';
+  import { dataURItoFile } from '@/dataUriUtils';
 
+  //for route change
   const router = useRouter();
 
+  //for vuex
   const store = useStore();
 
-  const user = JSON.parse(localStorage.getItem('user'));
+  //get current logged in user
+  const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user')) || null;
 
-  //get stored user input data from vuex persist
+  //check if there is any previously stored user data
   const userData = store.getters.getUserData;
 
   const formData = ref({
@@ -211,7 +214,7 @@
     address: userData?.address ?? '',
     dob: userData?.dob ?? '',
     type: userData?.type ?? '1',
-    profile: userData?.profile ?? '',
+    profile: userData?.profile ?? null,
     flg: 'unconfirm',
     create_user_id: user.id,
     updated_user_id: user.id
@@ -225,12 +228,15 @@
 
   const passwordConfirmationError = ref('');
 
+  const addressError = ref('');
+
   const profileError = ref('');
 
   const profileInput = ref('');
 
   const userProfileImagePreviewUrl = ref(null);
 
+  //check and control user input profile image
   function handleImageUpload(event) {
 
     const imgFile = event.target.files[0];
@@ -249,6 +255,7 @@
 
       reader.onload = function (e) {
 
+        //if image is ok to use, put it in image preview
         userProfileImagePreviewUrl.value = e.target.result;
 
       };
@@ -265,15 +272,15 @@
 
       const dataURI =  userProfileImagePreviewUrl.value;
 
-      localStorage.setItem('file', dataURI);
+      if (dataURI) {
+        //store user input profile image
+        sessionStorage.setItem('file', dataURI);
 
-      const blobFile = dataURItoBlob(dataURI);
+        //change profile image into image file
+        const imageFile = dataURItoFile(dataURI, 'image.jpg', 'image/jpeg');
 
-      const imageFile = new File([blobFile], 'image.jpg', {
-        type: 'image/jpeg',
-      });
-
-      formData.value.profile = imageFile;
+        formData.value.profile = imageFile;
+      }
 
       const response = await axiosInstance.post('/users', formData.value, { headers: { 'Content-Type': 'multipart/form-data' } });
 
@@ -284,6 +291,8 @@
       passwordError.value = '';
 
       passwordConfirmationError.value = '';
+
+      addressError.value = '';
 
       profileError.value = '';
 
@@ -296,7 +305,7 @@
 
     } catch (error) {
 
-      localStorage.removeItem('file');
+      sessionStorage.removeItem('file');
 
       profileError.value = '';
 
@@ -330,6 +339,12 @@
 
           }
 
+          if (errors.address) {
+
+            addressError.value = errors.address[0] || '';
+
+            }
+
           if (errors.profile) {
 
             profileError.value = errors.profile[0] || '';
@@ -348,6 +363,7 @@
 
   function clearUserData() {
 
+    //reset some formData input values
     formData.value.name = '';
 
     formData.value.email = ''
@@ -364,29 +380,41 @@
 
     formData.value.type = '1';
 
-    profileInput.value  = '';
+    profileInput.value.value  = '';
 
+    //clear stored user data
     store.dispatch('deleteUserData');
 
-    localStorage.removeItem('file');
+    //clear stored user input profile image
+    sessionStorage.removeItem('file');
 
+    //clear image preview
     userProfileImagePreviewUrl.value = null;
 
   }
 
   function removeImg() {
 
-    profileInput.value = '';
+    //when click circle x button, remove profileInput value and image preview
+    profileInput.value.value = '';
 
     userProfileImagePreviewUrl.value = null;
 
   }
 
-  onMounted(() => {
+  const fetchImgFileAndShowPreview = () => {
 
-    const profileDataURL = localStorage.getItem('file');
+    //check if there is previously stored user input profile image
+    const profileDataURL = sessionStorage.getItem('file');
 
     userProfileImagePreviewUrl.value = profileDataURL;
+
+  }
+
+  onMounted(() => {
+
+    fetchImgFileAndShowPreview();
+
   });
 
 </script>

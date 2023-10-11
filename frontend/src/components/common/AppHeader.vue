@@ -1,39 +1,3 @@
-<script setup>
-
-import { RouterLink } from 'vue-router';
-import axiosInstance from '@/axios.js';
-import { useRouter } from 'vue-router';
-import { useRoute } from "vue-router";
-
-const route = useRoute();
-
-const isActive = (path) => route.path === path;
-
-const router = useRouter();
-
-const user = JSON.parse(localStorage.getItem('user'));
-
-async function logout() {
-  try{
-    const response = await axiosInstance.post('/logout');
-    if (response.status === 200) {
-          localStorage.removeItem('user');
-          localStorage.removeItem('token');
-          router.push('/');
-          setTimeout(() => {
-            window.location.reload();
-          }, 5);
-    }
-    else {
-        console.error('Logout failed:', response.data);
-    }
-  }catch(error) {
-    console.error('Logout failed:', error);
-  }
-}
-
-</script>
-
 <template>
   <nav class="navbar navbar-expand-lg bg-body-tertiary">
     <div class="container-fluid">
@@ -72,4 +36,47 @@ async function logout() {
   </nav>
 </template>
 
+<script setup>
 
+  import { RouterLink } from 'vue-router';
+  import axiosInstance from '@/axios.js';
+  import { useRouter } from 'vue-router';
+  import { useStore } from 'vuex';
+
+  const store = useStore();
+
+  const router = useRouter();
+
+  //get current logged in user
+  const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user')) || null;
+
+  async function logout() {
+    try{
+      const response = await axiosInstance.post('/logout');
+      if (response.status === 200) {
+          if (localStorage.getItem('user')) {
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+          } else if (sessionStorage.getItem('user')) {
+            sessionStorage.removeItem('user');
+            sessionStorage.removeItem('token');
+          }
+          store.dispatch('deleteUserData');
+          store.dispatch('deletePostData');
+          if (sessionStorage.getItem('file')) {
+            sessionStorage.removeItem('file');
+          }
+          router.push('/');
+          setTimeout(() => {
+            window.location.reload();
+          }, 5);
+      }
+      else {
+          console.error('Logout failed:', response.data);
+      }
+    }catch(error) {
+      console.error('Logout failed:', error);
+    }
+  }
+
+</script>

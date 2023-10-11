@@ -31,10 +31,15 @@
                   Create
                 </router-link>
               </div>
-              <div class="col-12 col-md-3">
+              <div v-if="currentUser" class="col-12 col-md-3">
                 <router-link to="/UploadCSV" class="btn btn-primary common-btn" style="width: 100%">
                   Upload
                 </router-link>
+              </div>
+              <div v-else class="col-12 col-md-3">
+                <button class="btn btn-primary common-btn" style="width: 100%" disabled>
+                  Upload
+                </button>
               </div>
               <div class="col-12 col-md-3">
                 <button @click="downloadPostCSV" type="button" class="btn btn-primary common-btn"
@@ -55,21 +60,24 @@
           </thead>
           <tbody v-if="posts.length > 0">
             <tr v-for="post in posts" :key="post.id">
-              <td class="text-success" data-bs-toggle="modal" data-bs-target="#postDetailBtn"
+              <td v-if="currentUser" class="text-success" data-bs-toggle="modal" data-bs-target="#postDetailBtn"
                 @click="showPostDetail(post)">{{ post.title }}</td>
+              <td v-else>{{ post.title }}</td>
               <td>{{ post.description }}</td>
               <td>{{ findCreatedUserName(post.create_user_id) }}</td>
               <td>{{ formatDate(post.created_at) }}</td>
               <td>
-                <div v-if="currentUser">
-                  <router-link :to="'/PostEdit/' + post.id">
-                    <button type="button" class="btn btn-primary">Edit</button>
-                  </router-link>
-                  <button type="button" class="btn btn-danger mx-2" data-bs-toggle="modal" data-bs-target="#postDeleteBtn"
-                    @click="showDeleteConfirmation(post)">
-                    Delete
-                  </button>
-                </div>
+                <router-link :to="'/PostEdit/' + post.id" v-if="currentUser">
+                  <button type="button" class="btn btn-primary mx-3">Edit</button>
+                </router-link>
+                <button type="button" class="btn btn-primary" v-else disabled>Edit</button>
+                <button v-if="currentUser" type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#postDeleteBtn"
+                  :disabled= "!currentUser" @click="showDeleteConfirmation(post)">
+                  Delete
+                </button>
+                <button v-else type="button" class="btn btn-danger" disabled>
+                  Delete
+                </button>
               </td>
             </tr>
           </tbody>
@@ -238,7 +246,8 @@
   import Paginate from 'vuejs-paginate-next';
   import { formatDate } from '@/dateUtils';
 
-  const currentUser = localStorage.getItem('user');
+  //get current logged in user
+  const currentUser = localStorage.getItem('user') || sessionStorage.getItem('user') || null;
 
   const posts = ref([]);
 
@@ -266,7 +275,7 @@
 
   const closePostDetail = () => {
 
-    postDetail.value = null;
+    postDetail.value = '';
 
     showModalPostDetail.value = false;
 
@@ -282,7 +291,7 @@
 
   const closeDeleteConfirmation = () => {
 
-    selectedPost.value = null;
+    selectedPost.value = '';
 
     showModalDelete.value = false;
 
@@ -290,8 +299,7 @@
 
   const deletePost = (postID) => {
 
-    axiosInstance
-      .delete(`/posts/${postID}`)
+    axiosInstance.delete(`/posts/${postID}`)
       .then(() => {
 
         closeDeleteConfirmation();
@@ -309,8 +317,7 @@
 
   const fetchPosts = (page = 1) => {
 
-    axiosInstance
-      .get(`/posts?page=${page}`)
+    axiosInstance.get(`/posts?page=${page}`)
       .then((response) => {
 
         posts.value = response.data.posts.data;
@@ -328,8 +335,7 @@
 
   const fetchLimitedPosts = (page = 1) => {
 
-    axiosInstance
-      .get(`/showActivePosts?page=${page}`)
+    axiosInstance.get(`/showActivePosts?page=${page}`)
       .then((response) => {
 
         posts.value = response.data.posts.data;
@@ -346,8 +352,7 @@
     };
 
     const getLimitedUsers = () => {
-    axiosInstance
-      .get(`/showAllUsers`)
+    axiosInstance.get(`/showAllUsers`)
       .then((response) => {
         allUsers.value = response.data.allUsers;
       })
@@ -357,8 +362,7 @@
   }
 
   const getAllUsers = () => {
-    axiosInstance
-      .get(`/showAllUsers`)
+    axiosInstance.get(`/showAllUsers`)
       .then((response) => {
         allUsers.value = response.data.allUsers;
       })

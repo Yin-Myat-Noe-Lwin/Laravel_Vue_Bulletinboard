@@ -27,4 +27,13 @@ class ResetPasswordRequest extends FormRequest
             'password_confirmation' => ['required'],
         ];
     }
+
+    public function messages()
+    {
+        return [
+            'password.required' => 'Password can\'t be blank.',
+            'password.confirmed' => 'Password and Password confirmation do not match.',
+            'password_confirmation.required' => 'Password confirmation can\'t be blank.'
+        ];
+    }
 }
