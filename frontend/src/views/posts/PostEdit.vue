@@ -182,7 +182,8 @@
   }
 
   onMounted(() => {
-    if (!postEditData)  {
+    const jsonData = { "postEditData": {} };
+    if (!postEditData &&  Object.keys(jsonData.postEditData).length === 0)  {
       console.log("post edit data is null")
       fetchDataAndSetFormData();
     } else {
@@ -190,5 +191,23 @@
       fetchStoredEditDataAndSetFormData();
     }
   });
+
+  const removeDataFromSessionStorage = () => {
+    store.dispatch('deletePostEditData');
+  };
+
+  const beforeRouteLeave = () => {
+
+    router.beforeEach((to, from, next) => {
+      if (from.path.toLowerCase().startsWith('/postedit/') && !to.path.toLowerCase().startsWith('/posteditconfirm/')) {
+        alert('remove')
+        removeDataFromSessionStorage();
+      }
+      next();
+  });
+
+  };
+
+  beforeRouteLeave();
 
 </script>

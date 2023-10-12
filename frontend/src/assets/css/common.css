@@ -108,14 +108,35 @@ tbody tr:last-child {
 
 .circle-x-btn {
   position: absolute;
-  left: 38%;
-  top: -10%;
+  left: 37%;
+  top: -2%;
 }
-
-/* .li-item {
-  opacity: 0.7;
-} */
 
 .active {
   font-weight: bolder !important;
+}
+
+.success-message {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px;
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  text-align: center;
+  z-index: 9999;
+}
+
+.su-circle-x-btn{
+  position: absolute;
+  left: 35%;
+  top: -1%;
+}
+
+.signup-img-preview {
+  -webkit-mask:
+    radial-gradient(circle 20px at top right, #0000 98%, #000) top right;
+  -webkit-mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
 }

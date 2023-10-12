@@ -15,6 +15,7 @@ import PostEditConfirm from '../views/posts/PostEditConfirm.vue'
 import ForgotPassword from '../views/auth/ForgotPassword.vue'
 import ChangePassword from '../views/auth/ChangePassword.vue'
 import ResetPassword from '../views/auth/ResetPassword.vue'
+import AppSignup from '../views/auth/AppSignup.vue'
 import AppLogin from '../views/auth/AppLogin.vue'
 import UploadCSV from '../views/common/UploadCSV.vue'
 
@@ -91,6 +92,13 @@ const router = createRouter({
       path: '/resetPassword/:userId-:token',
       name: 'resetPassword',
       component: ResetPassword,
+      beforeEnter: requireAuth
+    },
+
+    {
+      path: '/signup',
+      name: 'signup',
+      component: AppSignup,
       beforeEnter: requireAuth
     },
 

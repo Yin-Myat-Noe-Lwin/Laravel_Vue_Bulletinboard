@@ -86,8 +86,8 @@
               <div class="col-12 col-md-8">
                 <div class="row">
                   <div class="col-12 col-md-10 preview-img">
-                    <font-awesome-icon :icon="['fas', 'circle-xmark']" class="circle-x-btn" @click="removeImg" />
-                    <img :src="userProfileImagePreviewUrl" class="img-fluid" alt="user-img"
+                    <font-awesome-icon :icon="['fas', 'circle-xmark']" class="circle-x-btn" @click="removeEditImg" />
+                    <img :src="userProfileImagePreviewUrl" class="img-fluid rounded signup-img-preview" alt="user-img"
                       style="width:150px; height:150px" />
                   </div>
                   <div class="col-12 col-md-2"></div>
@@ -99,7 +99,7 @@
               <div class="col-12 col-md-8">
                 <div class="row">
                   <div class="col-12 col-md-10">
-                    <img :src="userProfileImageUrl" class="img-fluid" alt="user-img" style="width:150px; height:150px" />
+                    <img :src="userProfileImageUrl" class="img-fluid rounded" alt="user-img" style="width:150px; height:150px" />
                   </div>
                   <div class="col-12 col-md-2"></div>
                 </div>
@@ -340,12 +340,12 @@
 
     userProfileImagePreviewUrl.value = '';
 
-    profileInput.value = '';
+    profileInput.value.value = '';
   }
 
-  function removeImg() {
+  function removeEditImg() {
 
-    profileInput.value = '';
+    profileInput.value.value = '';
 
     sessionStorage.removeItem('editFile');
 

@@ -4,6 +4,9 @@
       <div class="card-header card-header-bg">
         Post List
       </div>
+      <div v-if="showSuccessMessage" class="alert alert-success" role="alert">
+        {{ successMessage }}
+      </div>
       <div class="card-body p-4">
         <div class="row">
           <div class="col-12 col-md-6">
@@ -70,7 +73,7 @@
                 <router-link :to="'/PostEdit/' + post.id" v-if="currentUser">
                   <button type="button" class="btn btn-primary mx-3">Edit</button>
                 </router-link>
-                <button type="button" class="btn btn-primary" v-else disabled>Edit</button>
+                <button type="button" class="btn btn-primary mx-3" v-else disabled>Edit</button>
                 <button v-if="currentUser" type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#postDeleteBtn"
                   :disabled= "!currentUser" @click="showDeleteConfirmation(post)">
                   Delete
@@ -246,6 +249,20 @@
   import Paginate from 'vuejs-paginate-next';
   import { formatDate } from '@/dateUtils';
 
+  const successMessage = ref(sessionStorage.getItem('successMessage'));
+  const showSuccessMessage = ref(false);
+
+  function showRegisterSuccessMessage() {
+    if (successMessage.value) {
+      showSuccessMessage.value = true;
+      // Automatically hide the message after 5 seconds
+      setTimeout(() => {
+        showSuccessMessage.value = false;
+        sessionStorage.removeItem('successMessage');
+      }, 5000);
+    }
+  }
+
   //get current logged in user
   const currentUser = localStorage.getItem('user') || sessionStorage.getItem('user') || null;
 
@@ -388,6 +405,8 @@
   }
 
   onMounted(() => {
+
+    showRegisterSuccessMessage();
 
     if(currentUser) {
 

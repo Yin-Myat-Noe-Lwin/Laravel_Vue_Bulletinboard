@@ -26,12 +26,6 @@ class LoginController extends Controller
 
         }
 
-        $rememberMe = $request->input('rm');
-
-        info($rememberMe);
-
-        info($request->input('rm'));
-
         $token = $user->createToken('auth_token')->plainTextToken;
 
         $cookie = cookie('token', $token, 60 * 24 * 30 );

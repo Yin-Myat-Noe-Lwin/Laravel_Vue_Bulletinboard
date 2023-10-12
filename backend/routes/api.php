@@ -40,6 +40,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
 });
 
+//register user when not logged in
+Route::post('/signup', [UserController::class, 'signup'])->name('signup');
+
 //get all Users when not logged in
 Route::get('/showAllUsers', [UserController::class, 'showAllUsers'])->name('showAllUsers');
 

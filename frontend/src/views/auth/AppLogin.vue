@@ -7,6 +7,12 @@
           <div v-if="alertError" class="alert alert-danger" role="alert">
             {{ alertError }}
           </div>
+          <div v-if="showSuccessMessage" class="alert alert-success" role="alert">
+            {{ successMessage }}
+          </div>
+          <div v-if="showTokenErrorMessage" class="alert alert-danger" role="alert">
+            {{ tokenErrorMessage }}
+          </div>
           <form @submit.prevent="login">
             <div class="mb-3 mt-5 row">
               <label for="email" class="text-right-label col-12 col-md-4 col-form-label">Email Address:</label>
@@ -68,7 +74,7 @@
             <div class="mb-3 row">
               <div class="col-12 col-md-4"></div>
               <div class="col-12 col-md-8">
-                <RouterLink to="/" aria-current="page" class="link-class">Create Account?<font-awesome-icon
+                <RouterLink to="/signup" aria-current="page" class="link-class">Create Account?<font-awesome-icon
                     :icon="['fas', 'user-plus']" /></RouterLink>
               </div>
             </div>
@@ -81,7 +87,7 @@
 
 <script setup>
 
-  import { ref, watch  } from "vue";
+  import { ref, watch, onMounted  } from "vue";
   import axiosInstance from "@/axios.js";
   import { useRouter } from "vue-router";
 
@@ -91,13 +97,13 @@
   const rememberMe = ref(false);
 
   watch(rememberMe, (newVal) => {
-    formData.value.rm = newVal
+    formData.value.rememberme = newVal
   });
 
   const formData = ref({
     email: '',
     password: '',
-    rm: rememberMe.value
+    rememberme: rememberMe.value
   });
 
   const emailError = ref('');
@@ -105,6 +111,34 @@
   const passwordError = ref('');
 
   const alertError = ref('');
+
+  const successMessage = ref(sessionStorage.getItem('successMessage'));
+  const showSuccessMessage = ref(false);
+
+  function showForgotPasswordSuccessMessage() {
+    if (successMessage.value) {
+      showSuccessMessage.value = true;
+      // Automatically hide the message after 5 seconds
+      setTimeout(() => {
+        showSuccessMessage.value = false;
+        sessionStorage.removeItem('successMessage');
+      }, 5000);
+    }
+  }
+
+  const tokenErrorMessage = ref(sessionStorage.getItem('tokenErrorMessage'));
+  const showTokenErrorMessage = ref(false);
+
+  function showResetPasswordTokenErrorMessage() {
+    if (tokenErrorMessage.value) {
+      showTokenErrorMessage.value = true;
+      // Automatically hide the message after 5 seconds
+      setTimeout(() => {
+        showTokenErrorMessage.value = false;
+        sessionStorage.removeItem('tokenErrorMessage');
+      }, 5000);
+    }
+  }
 
   async function login() {
 
@@ -121,7 +155,7 @@
 
       console.log("Logged in successfully!", response.data);
 
-      if(formData.value.rm) {
+      if(formData.value.rememberme) {
 
         localStorage.setItem("token", response.data.token);
 
@@ -180,5 +214,10 @@
     }
 
   }
+
+  onMounted(() => {
+    showForgotPasswordSuccessMessage();
+    showResetPasswordTokenErrorMessage();
+  })
 
 </script>

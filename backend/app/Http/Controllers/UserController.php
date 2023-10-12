@@ -8,13 +8,14 @@ use Illuminate\Support\Str;
 use App\Exports\UsersExport;
 use Illuminate\Http\Request;
 use App\Http\Resources\UserResource;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\UserCreateRequest;
 use App\Http\Requests\UserUpdateRequest;
 use App\Http\Requests\ChangePasswordRequest;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\SignupRequest;
 
 class UserController extends Controller
 {
@@ -128,6 +129,52 @@ class UserController extends Controller
         //allUsers for user data, users for pagination
         return response()->json(['users' => $users, 'allUsers' => $allUsers]);
     }
+
+    //register when not logged in
+    public function signup(SignupRequest $request)
+    {
+        $user = User::create($request->all());
+
+        $path = storage_path('app/public/images/');
+
+        //check if there is folder name "images", if not, create "images" folder
+        if (!is_dir($path)) {
+
+            mkdir($path, 0777, true);
+
+        }
+
+        //get user input profile image , change custom file name and store under "images" folder
+        if ($request->hasFile('profile')) {
+
+            $file = $request->file('profile');
+
+            $randomFileName = Str::random(20);
+
+            $fileName = $randomFileName. '.'. $file->getClientOriginalExtension();
+
+            $file->storeAs('public/images', $fileName);
+
+            $user->update(['profile' => $fileName]);
+
+        }
+
+        $user->update([
+            'create_user_id' => $user->id,
+            'updated_user_id' => $user->id,
+        ]);
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $cookie = cookie('token', $token, 60 * 24 * 30 );
+
+        return response()->json([
+            'message' => 'User sign up successful',
+            'user' =>  new UserResource($user),
+            'token' => $token
+        ])->withCookie($cookie);
+    }
+
     /**
      * Store a newly created resource in storage.
      */

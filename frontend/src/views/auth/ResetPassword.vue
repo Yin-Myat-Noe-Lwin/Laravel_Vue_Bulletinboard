@@ -75,12 +75,16 @@
 
   const passwordConfirmationError = ref('');
 
+  const tokenError = ref('');
+
   async function resetPassword() {
     try {
       const response = await axiosInstance.post(`/resetPassword`, formData.value);
       passwordError.value = '';
       passwordConfirmationError.value = '';
+      tokenError.value = '';
       console.log('Changed password successfully!', response.data);
+      sessionStorage.setItem("successMessage", response.data.message);
       router.push('/login');
     } catch (error) {
       if (error.response) {
@@ -92,6 +96,14 @@
           if (errors.password_confirmation) {
             passwordConfirmationError.value = errors.password_confirmation[0] || '';
           }
+        }else {
+
+        tokenError.value = error.response.data.error;
+
+        sessionStorage.setItem('tokenErrorMessage', tokenError.value);
+
+        router.push('/login');
+
         }
       }
       console.error(error);

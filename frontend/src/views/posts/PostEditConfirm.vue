@@ -190,6 +190,7 @@
 
     router.beforeEach((to, from, next) => {
       if (from.path.toLowerCase().startsWith('/posteditconfirm/') && !to.path.toLowerCase().startsWith('/postedit/')) {
+        alert('remove')
         removeDataFromSessionStorage();
       }
       next();

@@ -56,8 +56,6 @@
 
   const alertError = ref('');
 
-  const successMessage = ref('');
-
   async function forgotPassword() {
 
     try {
@@ -70,7 +68,7 @@
 
       console.log('Forgot password successfully!', response.data);
 
-      console.log(response.data.message)
+      sessionStorage.setItem("successMessage", response.data.message);
 
       router.push("/login");
 

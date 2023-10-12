@@ -13,7 +13,7 @@
         </ul>
         <ul class="navbar-nav">
           <li v-if="!user" class="nav-item li-item"  active-class="active">
-            <RouterLink  to="/register" class="nav-link" aria-current="page" active-class="active">Register</RouterLink>
+            <RouterLink  to="/signup" class="nav-link" aria-current="page" active-class="active">Register</RouterLink>
           </li>
           <li v-if="!user" class="nav-item"  active-class="active">
             <RouterLink to="/login" class="nav-link" aria-current="page" active-class="active">Login</RouterLink>

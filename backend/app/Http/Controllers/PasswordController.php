@@ -8,8 +8,8 @@ use App\Models\PasswordReset;
 use App\Mail\PasswordResetMail;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Requests\ResetPasswordRequest;
+use App\Http\Requests\ForgotPasswordRequest;
 
 class PasswordController extends Controller
 {
@@ -29,6 +29,8 @@ class PasswordController extends Controller
 
             $token = Str::random(64);
 
+            $expiresAt = now()->addMinutes(1);
+
             $passwordReset = PasswordReset::where('email', $request->email)->first();
 
             if ($passwordReset) {
@@ -36,6 +38,7 @@ class PasswordController extends Controller
                 //if user email has already password reset token, update it with new token
                 $passwordReset->update([
                     'token' => $token,
+                    'expires_at' => $expiresAt,
                 ]);
 
             } else {
@@ -44,6 +47,7 @@ class PasswordController extends Controller
                 $passwordReset = new PasswordReset();
                 $passwordReset->email = $request->email;
                 $passwordReset->token = $token;
+                $passwordReset->expires_at = $expiresAt;
                 $passwordReset->save();
 
             }
@@ -81,15 +85,20 @@ class PasswordController extends Controller
                                         ->where('token', $request->token)
                                         ->first();
 
-        //change user password
-        $user->password = Hash::make($request->password);
+        if(!$passwordReset || $passwordReset->expires_at < now()) {
+            //token expair error
+            return response()->json(['error' => 'Password Reset Token Expired.'], 422);
+        } else {
+            //change user password
+            $user->password = Hash::make($request->password);
 
-        $user->save();
+            $user->save();
 
-        //delete password reset token
-        $passwordReset->delete();
+            //delete password reset token
+            $passwordReset->delete();
 
-        return response()->json(['message' => 'Password has been reset.'], 200);
+            return response()->json(['message' => 'Password has been reset.'], 200);
+        }
     }
 
 }

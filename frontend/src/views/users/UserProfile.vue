@@ -8,7 +8,7 @@
         <div class="card-body p-5">
           <div class="row">
             <div class="col-12 col-md-4">
-              <img :src="userProfileImageUrl" class="img-fluid" alt="user-img" style="width:150px; height:150px" />
+              <img :src="userProfileImageUrl" class="img-fluid rounded" alt="user-img" style="width:150px; height:150px" />
             </div>
             <div class="col-12 col-md-8">
               <div class="row mb-3">
