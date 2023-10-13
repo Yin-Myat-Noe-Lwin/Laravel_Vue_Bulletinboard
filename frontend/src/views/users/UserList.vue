@@ -30,8 +30,8 @@
                 <div class="mb-3 row">
                   <label for="dob" class="text-right-label col-12 col-md-3 col-form-label form-custom-label">From:</label>
                   <div class="col-12 col-md-9">
-                    <input v-model="searchFromDateQuery" type="date" class="form-control form-custom-border" id="from_created_at"
-                      name="dob" />
+                    <input v-model="searchFromDateQuery" type="date" class="form-control form-custom-border"
+                      id="from_created_at" name="dob" />
                   </div>
                 </div>
               </div>
@@ -39,8 +39,8 @@
                 <div class="mb-3 row">
                   <label for="dob" class="text-right-label col-12 col-md-3 col-form-label form-custom-label">To:</label>
                   <div class="col-12 col-md-9">
-                    <input v-model="searchToDateQuery" type="date" class="form-control form-custom-border" id="to_created_at"
-                      name="dob" />
+                    <input v-model="searchToDateQuery" type="date" class="form-control form-custom-border"
+                      id="to_created_at" name="dob" />
                   </div>
                 </div>
               </div>
@@ -72,7 +72,7 @@
             <tr v-for="user in users" :key="user.id">
               <th scope="row">{{ user.id }}</th>
               <td v-if="currentUser" class="text-success" data-bs-toggle="modal" data-bs-target='#userDetailBtn'
-              @click="showUserDetail(user)">{{ user.name }}</td>
+                @click="showUserDetail(user)">{{ user.name }}</td>
               <td v-else>{{ user.name }}</td>
               <td>{{ user.email }}</td>
               <td>{{ findCreatedUserName(user.create_user_id) }}</td>
@@ -83,8 +83,9 @@
               <td>{{ formatDate(user.created_at) }}</td>
               <td>{{ formatDate(user.updated_at) }}</td>
               <td>
-                <button v-if="currentUser" type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#userDeleteBtn"
-                  :disabled= "!currentUser || checkUserLoggedIn(user.id)" @click="showDeleteConfirmation(user)">
+                <button v-if="currentUser" type="button" class="btn btn-danger" data-bs-toggle="modal"
+                  data-bs-target="#userDeleteBtn" :disabled="!currentUser || checkUserLoggedIn(user.id)"
+                  @click="showDeleteConfirmation(user)">
                   Delete
                 </button>
                 <button v-else type="button" class="btn btn-danger" disabled>
@@ -316,8 +317,8 @@
 <script setup>
 
   import { ref, onMounted } from 'vue';
-  import axiosInstance from '@/axios.js';
   import Paginate from 'vuejs-paginate-next';
+  import axiosInstance from '@/axios.js';
   import { formatDate } from '@/dateUtils';
 
   //get current logged in user
@@ -333,78 +334,125 @@
 
   //user data search
   const searchNameQuery = ref('');
+
   const searchEmailQuery = ref('');
+
   const searchFromDateQuery = ref('');
+
   const searchToDateQuery = ref('');
 
   const getLimitedUsers = () => {
+
     axiosInstance.get(`/users`).then((response) => {
-          allUsers.value = response.data.allUsers;
-      })
+
+      allUsers.value = response.data.allUsers;
+
+    })
       .catch((error) => {
+
         console.error(error);
+
       });
+
   }
 
   const getAllUsers = () => {
+
     axiosInstance.get(`/showAllUsers`).then((response) => {
-        allUsers.value = response.data.allUsers;
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+
+      allUsers.value = response.data.allUsers;
+
+    })
+    .catch((error) => {
+
+      console.error(error);
+
+    });
+
   }
 
   const fetchLimitedUsers = (page = 1) => {
+
     axiosInstance.get(`/users?page=${page}`).then((response) => {
-        users.value = response.data.users.data;
-        totalPages.value = response.data.users.last_page;
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+
+      users.value = response.data.users.data;
+
+      totalPages.value = response.data.users.last_page;
+
+    })
+    .catch((error) => {
+
+      console.error(error);
+
+    });
+
   };
 
   const fetchAllUsers = (page = 1) => {
+
     axiosInstance.get(`showAllUsers/?page=${page}`).then((response) => {
-        users.value = response.data.users.data;
-        totalPages.value = response.data.users.last_page;
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+
+      users.value = response.data.users.data;
+
+      totalPages.value = response.data.users.last_page;
+
+    })
+    .catch((error) => {
+
+      console.error(error);
+
+    });
+
   };
 
   function findCreatedUserName(userId) {
+
     const createdUser = allUsers.value.find(user => user.id === userId);
+
     return createdUser ? createdUser.name : null;
+
   }
 
   function findUpdatedUserName(userId) {
+
     const updatedUser = allUsers.value.find(user => user.id === userId);
+
     return updatedUser ? updatedUser.name : null;
+
   }
 
   onMounted(() => {
 
-    if(currentUser) {
+    if (currentUser) {
+
       //for loggedin user and admin
       getLimitedUsers();
+
       fetchLimitedUsers();
+
     } else {
+
       //unloggedin user
       getAllUsers();
+
       fetchAllUsers();
+
     }
 
   });
 
   function checkUserLoggedIn(userId) {
+
     if (currentUser) {
+
       const loggedInUser = JSON.parse(currentUser);
+
       return userId === loggedInUser.id;
+
     }
+
     return false;
+
   }
 
   const userDetail = ref({});
@@ -416,67 +464,106 @@
   const showModalDelete = ref(false);
 
   const showUserDetail = async (user) => {
+
     try {
+
       userDetail.value = user;
+
       showModalUserDetail.value = true;
-      axiosInstance.get(`/users/${user.id}/${user.profile}`, { responseType: 'blob' })
-        .then((response) => {
-          const blob = new Blob([response.data], { type: response.headers['content-type'] });
-          const imageUrl = URL.createObjectURL(blob);
-          profileImageUrl.value = imageUrl;
-        })
+
+      const response = await axiosInstance.get(`/users/${user.id}/${user.profile}`, { responseType: 'blob' });
+
+      const blob = new Blob([response.data], { type: response.headers['content-type'] });
+
+      const imageUrl = URL.createObjectURL(blob);
+
+      profileImageUrl.value = imageUrl;
+
     } catch (error) {
+
       console.error('Error fetching profile image:', error);
+
     }
+
   };
 
   const closeUerDetail = () => {
+
     selectedUser.value = '';
+
     showModalUserDetail.value = false;
+
   };
 
   const showDeleteConfirmation = (user) => {
+
     selectedUser.value = user;
+
     showModalDelete.value = true;
+
   };
 
   const closeDeleteConfirmation = () => {
+
     selectedUser.value = '';
+
     showModalDelete.value = false;
+
   };
 
   const deleteUser = (userID) => {
-    axiosInstance.delete(`/users/${userID}`)
-      .then(() => {
-        closeDeleteConfirmation()
-        window.location.reload()
-      })
-      .catch((error) => {
-        alert("error");
-        console.error(error);
-      });
+
+    axiosInstance.delete(`/users/${userID}`).then(() => {
+
+      closeDeleteConfirmation();
+
+      window.location.reload();
+
+    })
+    .catch((error) => {
+
+      console.error(error);
+
+    });
+
   };
 
   async function searchUserData(page = 1) {
-    if(currentUser) {
+
+    if (currentUser) {
+
       try {
+
         const response = await axiosInstance.get(`/users?page=${page}&searchName=${searchNameQuery.value}&searchEmail=${searchEmailQuery.value}&searchFromDate=${searchFromDateQuery.value}&searchToDate=${searchToDateQuery.value}`);
+
         users.value = response.data.users.data;
+
         totalPages.value = response.data.users.last_page;
-      }
-      catch (error) {
+
+      } catch (error) {
+
         console.error('Error fetching posts:', error);
+
       }
+
     } else {
-        try {
-          const response = await axiosInstance.get(`/showAllUsers?page=${page}&searchName=${searchNameQuery.value}&searchEmail=${searchEmailQuery.value}&searchFromDate=${searchFromDateQuery.value}&searchToDate=${searchToDateQuery.value}`);
-          users.value = response.data.users.data;
-          totalPages.value = response.data.users.last_page;
-        }
-        catch (error) {
-          console.error('Error fetching posts:', error);
-        }
+
+      try {
+
+        const response = await axiosInstance.get(`/showAllUsers?page=${page}&searchName=${searchNameQuery.value}&searchEmail=${searchEmailQuery.value}&searchFromDate=${searchFromDateQuery.value}&searchToDate=${searchToDateQuery.value}`);
+
+        users.value = response.data.users.data;
+
+        totalPages.value = response.data.users.last_page;
+
+      } catch (error) {
+
+        console.error('Error fetching posts:', error);
+
+      }
+
     }
+
   }
 
 </script>

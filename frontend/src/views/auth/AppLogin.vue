@@ -87,17 +87,21 @@
 
 <script setup>
 
-  import { ref, watch, onMounted  } from "vue";
-  import axiosInstance from "@/axios.js";
+  import { ref, watch, onMounted } from "vue";
   import { useRouter } from "vue-router";
+  import axiosInstance from "@/axios.js";
 
   //for route change
   const router = useRouter();
 
+  //initially set rememberMe value to false
   const rememberMe = ref(false);
 
   watch(rememberMe, (newVal) => {
-    formData.value.rememberme = newVal
+
+    //rememberMe value on  real time change
+    formData.value.rememberme = newVal;
+
   });
 
   const formData = ref({
@@ -112,40 +116,61 @@
 
   const alertError = ref('');
 
+  //fetch success message value if there is
   const successMessage = ref(sessionStorage.getItem('successMessage'));
+
   const showSuccessMessage = ref(false);
 
   function showForgotPasswordSuccessMessage() {
+
     if (successMessage.value) {
+
       showSuccessMessage.value = true;
+
       // Automatically hide the message after 5 seconds
       setTimeout(() => {
+
         showSuccessMessage.value = false;
+
+        //remove stored message after show
         sessionStorage.removeItem('successMessage');
+
       }, 5000);
+
     }
+
   }
 
+  //fetch error message value if there is
   const tokenErrorMessage = ref(sessionStorage.getItem('tokenErrorMessage'));
+
   const showTokenErrorMessage = ref(false);
 
   function showResetPasswordTokenErrorMessage() {
+
     if (tokenErrorMessage.value) {
+
       showTokenErrorMessage.value = true;
+
       // Automatically hide the message after 5 seconds
       setTimeout(() => {
+
         showTokenErrorMessage.value = false;
+
+        //remove stored message after show
         sessionStorage.removeItem('tokenErrorMessage');
+
       }, 5000);
+
     }
+
   }
 
   async function login() {
 
     try {
-      const response = await axiosInstance.post(`/login`, formData.value);
 
-      console.log(formData.value)
+      const response = await axiosInstance.post(`/login`, formData.value);
 
       emailError.value = '';
 
@@ -155,24 +180,30 @@
 
       console.log("Logged in successfully!", response.data);
 
-      if(formData.value.rememberme) {
+      if (formData.value.rememberme) {
 
+        //if user checks remember me, store in local storage
         localStorage.setItem("token", response.data.token);
 
         localStorage.setItem("user", JSON.stringify(response.data.user));
 
       } else {
 
+        //if not, store in session storage
         sessionStorage.setItem("token", response.data.token);
 
         sessionStorage.setItem("user", JSON.stringify(response.data.user));
 
       }
 
+      //redirect to Post list page
       router.push("/");
 
+      //reload the page
       setTimeout(() => {
+
         window.location.reload();
+
       }, 5);
 
     } catch (error) {
@@ -216,8 +247,11 @@
   }
 
   onMounted(() => {
+
     showForgotPasswordSuccessMessage();
+
     showResetPasswordTokenErrorMessage();
+
   })
 
 </script>

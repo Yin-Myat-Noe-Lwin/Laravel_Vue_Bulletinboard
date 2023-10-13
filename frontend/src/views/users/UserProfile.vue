@@ -8,7 +8,8 @@
         <div class="card-body p-5">
           <div class="row">
             <div class="col-12 col-md-4">
-              <img :src="userProfileImageUrl" class="img-fluid rounded" alt="user-img" style="width:150px; height:150px" />
+              <img :src="userProfileImageUrl" class="img-fluid rounded" alt="user-img"
+                style="width:150px; height:150px" />
             </div>
             <div class="col-12 col-md-8">
               <div class="row mb-3">
@@ -80,6 +81,7 @@
   import axiosInstance from '@/axios.js';
   import { formatDate } from '@/dateUtils';
 
+  //get current logged in user
   const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user')) || null;
 
   const userProfileImageUrl = ref(null);
@@ -88,21 +90,20 @@
 
     try {
 
-      axiosInstance.get(`/users/${user.id}/${user.profile}`, { responseType: 'blob' })
-        .then((response) => {
+      const response = await axiosInstance.get(`/users/${user.id}/${user.profile}`, { responseType: 'blob' });
 
-          const blob = new Blob([response.data], { type: response.headers['content-type'] });
+      const blob = new Blob([response.data], { type: response.headers['content-type'] });
 
-          const imageUrl = URL.createObjectURL(blob);
+      const imageUrl = URL.createObjectURL(blob);
 
-          userProfileImageUrl.value = imageUrl;
+      userProfileImageUrl.value = imageUrl;
 
-        })
     } catch (error) {
 
       console.error('Error fetching profile image:', error);
 
     }
+
   };
 
   onMounted(() => {

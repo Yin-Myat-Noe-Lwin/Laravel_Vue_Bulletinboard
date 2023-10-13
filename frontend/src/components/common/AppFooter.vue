@@ -1,6 +1,3 @@
-<script>
-// import { RouterLink,RouterView } from 'vue-router';
-</script>
 <template>
   <footer>
     <div class="container-fluid bg-light pt-3 pb-1 ">

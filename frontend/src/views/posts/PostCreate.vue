@@ -100,12 +100,9 @@
 <script setup>
 
   import { ref } from 'vue';
-
-  import axiosInstance from '@/axios.js';
-
   import { useRouter } from 'vue-router';
-
   import { useStore } from 'vuex';
+  import axiosInstance from '@/axios.js';
 
   //for route change
   const router = useRouter();
@@ -166,24 +163,31 @@
             titleError.value = errors.title[0] || '';
 
           }
+
           if (errors.description) {
 
             descriptionError.value = errors.description[0] || '';
 
           }
+
           if (errors.status) {
 
             statusError.value = errors.status[0] || '';
 
           }
+
         }
+
       }
+
       console.error(error);
+
     }
   }
 
   function clearPostData() {
 
+    //reset some post data
     formData.value.title = ''
 
     formData.value.description = ''
@@ -195,7 +199,8 @@
     statusError.value = '';
 
     //delete stored post data
-    store.dispatch('deletePostData')
+    store.dispatch('deletePostData');
+
   }
 
 </script>

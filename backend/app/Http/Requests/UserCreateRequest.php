@@ -45,6 +45,7 @@ class UserCreateRequest extends FormRequest
             'email.required' => 'Email can\'t be blank.',
             'email.email' => 'Email format is invalid.',
             'password.required' => 'Password can\'t be blank.',
+            'password.regex' => 'Password must contain at least one Uppercase letter and one special character.',
             'password.confirmed' => 'Password and Password confirmation do not match.',
             'password_confirmation.required' => 'Password can\'t be blank.',
             'address.required' => 'Address can\'t be blank.',

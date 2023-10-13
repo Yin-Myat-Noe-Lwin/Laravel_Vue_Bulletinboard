@@ -42,6 +42,7 @@
                       <option value="0" selected>Admin</option>
                       <option value="1">User</option>
                     </select>
+                    <div v-if="typeError" class="text-danger">{{ typeError }}</div>
                   </div>
                   <div class="col-12 col-md-2"></div>
                 </div>
@@ -53,6 +54,7 @@
                 <div class="row">
                   <div class="col-12 col-md-10">
                     <input v-model="formData.phone" type="text" class="form-control" id="phone" name="phone">
+                    <div v-if="phoneError" class="text-danger">{{ phoneError }}</div>
                   </div>
                   <div class="col-12 col-md-2"></div>
                 </div>
@@ -87,7 +89,7 @@
                 <div class="row">
                   <div class="col-12 col-md-10 preview-img">
                     <font-awesome-icon :icon="['fas', 'circle-xmark']" class="circle-x-btn" @click="removeEditImg" />
-                    <img :src="userProfileImagePreviewUrl" class="img-fluid rounded signup-img-preview" alt="user-img"
+                    <img :src="userProfileImagePreviewUrl" class="img-fluid rounded img-preview" alt="user-img"
                       style="width:150px; height:150px" />
                   </div>
                   <div class="col-12 col-md-2"></div>
@@ -99,7 +101,7 @@
               <div class="col-12 col-md-8">
                 <div class="row">
                   <div class="col-12 col-md-10">
-                    <img :src="userProfileImageUrl" class="img-fluid rounded" alt="user-img" style="width:150px; height:150px" />
+                    <img :src="userProfileImageUrl" class="img-fluid rounded" alt="user-img" style="width:150px; height:150px" @change="onFileInputChange" />
                   </div>
                   <div class="col-12 col-md-2"></div>
                 </div>
@@ -111,7 +113,7 @@
                 <div class="row">
                   <div class="col-12 col-md-10">
                     <input class="form-control" type="file" id="profile" name="profile" ref="profileInput"
-                      @change="handleImageUpload">
+                     @change="onFileInputChange">
                     <div v-if="profileError" class="text-danger">{{ profileError }}</div>
                   </div>
                   <div class="col-12 col-md-2"></div>
@@ -160,9 +162,10 @@
 <script setup>
 
   import { ref, onMounted } from 'vue';
-  import axiosInstance from '@/axios.js';
   import { useRouter } from 'vue-router';
+  import axiosInstance from '@/axios.js';
   import { dataURItoFile } from '@/dataUriUtils';
+  import { handleImageUpload  } from '@/imageUtils';
 
   //for route change
   const router = new useRouter();
@@ -182,7 +185,11 @@
 
   const addressError = ref('');
 
+  const phoneError = ref('');
+
   const profileError = ref('');
+
+  const typeError = ref('');
 
   const formData = ref({
     name: user.name,
@@ -201,16 +208,13 @@
 
     try {
 
-      axiosInstance.get(`/users/${user.id}/${user.profile}`, { responseType: 'blob' })
-        .then((response) => {
+      const response = await axiosInstance.get(`/users/${user.id}/${user.profile}`, { responseType: 'blob' });
 
-          const blob = new Blob([response.data], { type: response.headers['content-type'] });
+      const blob = new Blob([response.data], { type: response.headers['content-type'] });
 
-          const imageUrl = URL.createObjectURL(blob);
+      const imageUrl = URL.createObjectURL(blob);
 
-          userProfileImageUrl.value = imageUrl;
-
-        })
+      userProfileImageUrl.value = imageUrl;
 
     } catch (error) {
 
@@ -220,36 +224,12 @@
 
   };
 
-  //check and control user profile input image
-  function handleImageUpload(event) {
+  //check and control user input profile image
+  const onFileInputChange = (event) => {
 
-    const imgFile = event.target.files[0];
+    handleImageUpload(event, profileError, userProfileImagePreviewUrl);
 
-    const imgSize = imgFile.size;
-
-    const maxSize = 2 * 1024 * 1024;
-
-    if (imgSize > maxSize) {
-
-      profileError.value = "Image file size must be less than 2MB";
-
-      formData.value.profile = '';
-
-    }
-    else {
-
-      const reader = new FileReader();
-
-      reader.onload = function (e) {
-
-        userProfileImagePreviewUrl.value = e.target.result;
-
-      };
-
-      reader.readAsDataURL(imgFile);
-
-    }
-  }
+  };
 
   async function updateUser(userID) {
 
@@ -274,6 +254,10 @@
 
       profileError.value = '';
 
+      phoneError.value = '';
+
+      typeError.value = '';
+
       console.log('Updated user successfully!', response.data.user);
 
       const updatedUserData = response.data.user;
@@ -297,21 +281,37 @@
             nameError.value = errors.name[0] || '';
 
           }
+
           if (errors.email) {
 
             emailError.value = errors.email[0] || '';
 
           }
+
           if (errors.address) {
 
             addressError.value = errors.address[0] || '';
 
           }
+
+          if (errors.phone) {
+
+            phoneError.value = errors.phone[0] || '';
+
+          }
+
           if (errors.profile) {
 
             profileError.value = errors.profile[0] || '';
 
           }
+
+          if (errors.type) {
+
+            typeError.value = errors.type[0] || '';
+
+          }
+
         }
       }
       console.error(error);

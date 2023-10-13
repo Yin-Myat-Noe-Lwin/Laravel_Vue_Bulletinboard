@@ -34,15 +34,10 @@
                   Create
                 </router-link>
               </div>
-              <div v-if="currentUser" class="col-12 col-md-3">
+              <div class="col-12 col-md-3">
                 <router-link to="/UploadCSV" class="btn btn-primary common-btn" style="width: 100%">
                   Upload
                 </router-link>
-              </div>
-              <div v-else class="col-12 col-md-3">
-                <button class="btn btn-primary common-btn" style="width: 100%" disabled>
-                  Upload
-                </button>
               </div>
               <div class="col-12 col-md-3">
                 <button @click="downloadPostCSV" type="button" class="btn btn-primary common-btn"
@@ -74,8 +69,8 @@
                   <button type="button" class="btn btn-primary mx-3">Edit</button>
                 </router-link>
                 <button type="button" class="btn btn-primary mx-3" v-else disabled>Edit</button>
-                <button v-if="currentUser" type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#postDeleteBtn"
-                  :disabled= "!currentUser" @click="showDeleteConfirmation(post)">
+                <button v-if="currentUser" type="button" class="btn btn-danger" data-bs-toggle="modal"
+                  data-bs-target="#postDeleteBtn" :disabled="!currentUser" @click="showDeleteConfirmation(post)">
                   Delete
                 </button>
                 <button v-else type="button" class="btn btn-danger" disabled>
@@ -245,22 +240,32 @@
 <script setup>
 
   import { ref, onMounted, computed } from 'vue';
-  import axiosInstance from '@/axios.js';
   import Paginate from 'vuejs-paginate-next';
+  import axiosInstance from '@/axios.js';
   import { formatDate } from '@/dateUtils';
 
+  //fetch stored success message if there is
   const successMessage = ref(sessionStorage.getItem('successMessage'));
+
   const showSuccessMessage = ref(false);
 
   function showRegisterSuccessMessage() {
+
     if (successMessage.value) {
+
       showSuccessMessage.value = true;
+
       // Automatically hide the message after 5 seconds
       setTimeout(() => {
+
         showSuccessMessage.value = false;
+
         sessionStorage.removeItem('successMessage');
+
       }, 5000);
+
     }
+
   }
 
   //get current logged in user
@@ -316,76 +321,83 @@
 
   const deletePost = (postID) => {
 
-    axiosInstance.delete(`/posts/${postID}`)
-      .then(() => {
+    axiosInstance.delete(`/posts/${postID}`).then(() => {
 
-        closeDeleteConfirmation();
+      closeDeleteConfirmation();
 
-        window.location.reload();
+      window.location.reload();
 
-      })
-      .catch((error) => {
+    })
+    .catch((error) => {
 
-        console.error(error);
+      console.error(error);
 
-      });
+    });
 
   };
 
   const fetchPosts = (page = 1) => {
 
-    axiosInstance.get(`/posts?page=${page}`)
-      .then((response) => {
+    axiosInstance.get(`/posts?page=${page}`).then((response) => {
 
-        posts.value = response.data.posts.data;
+      posts.value = response.data.posts.data;
 
-        totalPages.value = response.data.posts.last_page;
+      totalPages.value = response.data.posts.last_page;
 
       })
-      .catch((error) => {
+    .catch((error) => {
 
-        console.error(error);
+      console.error(error);
 
-      });
+    });
 
   };
 
   const fetchLimitedPosts = (page = 1) => {
 
-    axiosInstance.get(`/showActivePosts?page=${page}`)
-      .then((response) => {
+    axiosInstance.get(`/showActivePosts?page=${page}`).then((response) => {
 
         posts.value = response.data.posts.data;
 
         totalPages.value = response.data.posts.last_page;
 
-      })
-      .catch((error) => {
+    })
+    .catch((error) => {
 
-        console.error(error);
+      console.error(error);
 
-      });
+    });
 
-    };
+  };
 
-    const getLimitedUsers = () => {
-    axiosInstance.get(`/showAllUsers`)
-      .then((response) => {
-        allUsers.value = response.data.allUsers;
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+  const getLimitedUsers = () => {
+
+    axiosInstance.get(`/showAllUsers`).then((response) => {
+
+      allUsers.value = response.data.allUsers;
+
+    })
+    .catch((error) => {
+
+      console.error(error);
+
+    });
+
   }
 
   const getAllUsers = () => {
-    axiosInstance.get(`/showAllUsers`)
-      .then((response) => {
-        allUsers.value = response.data.allUsers;
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+
+    axiosInstance.get(`/showAllUsers`).then((response) => {
+
+      allUsers.value = response.data.allUsers;
+
+    })
+    .catch((error) => {
+
+      console.error(error);
+
+    });
+
   }
 
   function findCreatedUserName(userId) {
@@ -408,7 +420,7 @@
 
     showRegisterSuccessMessage();
 
-    if(currentUser) {
+    if (currentUser) {
 
       getLimitedUsers();
 
@@ -421,7 +433,6 @@
       fetchLimitedPosts();
 
     }
-
 
   });
 
@@ -462,7 +473,8 @@
 
   async function searchPostData(page = 1) {
 
-    if(currentUser) {
+    if (currentUser) {
+
       try {
 
         const response = await axiosInstance.get(`posts?page=${page}&search=${searchQuery.value}`);
@@ -471,12 +483,13 @@
 
         totalPages.value = response.data.posts.last_page;
 
-        } catch (error) {
+      } catch (error) {
 
         console.error('Error fetching posts:', error);
 
-        }
+      }
     } else {
+
         try {
 
           const response = await axiosInstance.get(`showActivePosts?page=${page}&search=${searchQuery.value}`);
@@ -485,11 +498,12 @@
 
           totalPages.value = response.data.posts.last_page;
 
-          } catch (error) {
+        } catch (error) {
 
           console.error('Error fetching posts:', error);
 
         }
+
     }
 
   }

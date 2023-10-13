@@ -102,16 +102,18 @@
 
 <script setup>
 
-  import { useStore } from 'vuex';
   import { ref } from 'vue';
+  import { useStore } from 'vuex';
   import { useRoute, useRouter } from 'vue-router';
   import axiosInstance from '@/axios.js';
 
   //get current logged in user
   const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user')) || null;
 
+  //for vuex
   const store = useStore();
 
+  //for route change
   const router = new useRouter();
 
   const route = new useRoute();
@@ -120,8 +122,6 @@
   const postEditData = ref(null);
 
   postEditData.value = store.getters.getPostEditData;
-
-  console.log(postEditData.value)
 
   const formData = ref({
     title: postEditData.value.title,
@@ -151,50 +151,64 @@
 
       console.log('Confirm post edit successfully!', response.data);
 
-      router.push('/PostList')
+      //redirect to post list page
+      router.push('/')
 
     } catch (error) {
 
       if (error.response) {
 
-      const { errors } = error.response.data;
+        const { errors } = error.response.data;
 
-      if (errors) {
+        if (errors) {
 
-        if (errors.title) {
+          if (errors.title) {
 
-          titleError.value = errors.title[0] || '';
+            titleError.value = errors.title[0] || '';
+
+          }
+
+          if (errors.description) {
+
+            descriptionError.value = errors.description[0] || '';
+
+          }
+
+          if (errors.status) {
+
+            statusError.value = errors.status[0] || '';
+
+          }
 
         }
-        if (errors.description) {
 
-          descriptionError.value = errors.description[0] || '';
-
-        }
-        if (errors.status) {
-
-          statusError.value = errors.status[0] || '';
-
-        }
       }
-      }
+
       console.error(error);
     }
+
   }
 
   const removeDataFromSessionStorage = () => {
+
     store.dispatch('deletePostEditData');
+
   };
 
   const beforeRouteLeave = () => {
 
+    //if to route is not post edit page, remove stored data
     router.beforeEach((to, from, next) => {
+
       if (from.path.toLowerCase().startsWith('/posteditconfirm/') && !to.path.toLowerCase().startsWith('/postedit/')) {
-        alert('remove')
+
         removeDataFromSessionStorage();
+
       }
+
       next();
-  });
+
+    });
 
   };
 
@@ -203,7 +217,7 @@
   function cancelCreatePost() {
 
     //if cancel, go back to edit page
-    router.push(`/PostEdit/${route.params.postID}`)
+    router.push(`/PostEdit/${route.params.postID}`);
 
   }
 

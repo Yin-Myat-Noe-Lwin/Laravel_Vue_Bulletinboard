@@ -26,7 +26,7 @@
               <div class="col-12 col-md-8">
                 <div class="row">
                   <div class="col-12 col-md-10">
-                    <input v-model="formData.email"  type="text" class="form-control" id="email" name="email">
+                    <input v-model="formData.email" type="text" class="form-control" id="email" name="email">
                     <div v-if="emailError" class="text-danger">{{ emailError }}</div>
                   </div>
                   <div class="col-12 col-md-2"></div>
@@ -39,7 +39,7 @@
               <div class="col-12 col-md-8">
                 <div class="row">
                   <div class="col-12 col-md-10">
-                    <input v-model="formData.password"  type="password" class="form-control" id="password" name="password">
+                    <input v-model="formData.password" type="password" class="form-control" id="password" name="password">
                     <div v-if="passwordError" class="text-danger">{{ passwordError }}</div>
                   </div>
                   <div class="col-12 col-md-2"></div>
@@ -52,7 +52,7 @@
               <div class="col-12 col-md-8">
                 <div class="row">
                   <div class="col-12 col-md-10">
-                    <input v-model="formData.password_confirmation"  type="password" class="form-control"
+                    <input v-model="formData.password_confirmation" type="password" class="form-control"
                       id="password_confirmation" name="password_confirmation">
                     <div v-if="passwordConfirmationError" class="text-danger">{{ passwordConfirmationError }}</div>
                   </div>
@@ -83,7 +83,8 @@
               </div>
             </div>
             <div class="mb-3 row">
-              <label for="address" class="text-right-label col-12 col-md-4 col-form-label">Address<span class="text-danger">*</span></label>
+              <label for="address" class="text-right-label col-12 col-md-4 col-form-label">Address<span
+                  class="text-danger">*</span></label>
               <div class="col-12 col-md-8">
                 <div class="row">
                   <div class="col-12 col-md-10">
@@ -101,8 +102,8 @@
                 <div class="row">
                   <div class="col-12 col-md-10 preview-img">
                     <font-awesome-icon :icon="['fas', 'circle-xmark']" class="circle-x-btn" @click="removeSignupImg" />
-                    <img :src="userProfileImagePreviewUrl" class="img-fluid rounded signup-img-preview" alt="user-profile-img-preview"
-                      style="width:150px; height:150px" @change="handleImageUpload" />
+                    <img :src="userProfileImagePreviewUrl" class="img-fluid rounded img-preview"
+                      alt="user-profile-img-preview" style="width:150px; height:150px" @change="onFileInputChange" />
                   </div>
                   <div class="col-12 col-md-2"></div>
                 </div>
@@ -115,7 +116,7 @@
                 <div class="row">
                   <div class="col-12 col-md-10">
                     <input class="form-control" type="file" id="profile" name="profile" ref="profileInput"
-                      @change="handleImageUpload">
+                    @change="onFileInputChange">
                     <div v-if="profileError" class="text-danger">{{ profileError }}</div>
                   </div>
                   <div class="col-12 col-md-2"></div>
@@ -139,9 +140,10 @@
 <script setup>
 
   import { ref } from 'vue';
-  import axiosInstance from '@/axios.js';
   import { useRouter } from "vue-router";
+  import axiosInstance from '@/axios.js';
   import { dataURItoFile } from '@/dataUriUtils';
+  import { handleImageUpload  } from '@/imageUtils';
 
   const router = useRouter();
 
@@ -168,6 +170,8 @@
 
   const passwordConfirmationError = ref('');
 
+  const phoneError = ref('');
+
   const addressError = ref('');
 
   const profileError = ref('');
@@ -176,40 +180,18 @@
 
   const userProfileImagePreviewUrl = ref(null);
 
-  function handleImageUpload(event) {
+  //check and control user input profile image
+  const onFileInputChange = (event) => {
 
-    const imgFile = event.target.files[0];
+    handleImageUpload(event, profileError, userProfileImagePreviewUrl);
 
-    const imgSize = imgFile.size;
-
-    const maxSize = 2 * 1024 * 1024;
-
-    if (imgSize > maxSize) {
-
-      profileError.value = "Image file size must be less than 2MB";
-
-    } else {
-
-      const reader = new FileReader();
-
-      reader.onload = function (e) {
-
-        //if image is ok to use, put it in image preview
-        userProfileImagePreviewUrl.value = e.target.result;
-
-      };
-
-      reader.readAsDataURL(imgFile);
-
-    }
-
-  }
+  };
 
   async function signupUser() {
 
     try {
 
-      const dataURI =  userProfileImagePreviewUrl.value;
+      const dataURI = userProfileImagePreviewUrl.value;
 
       if (dataURI) {
 
@@ -217,6 +199,7 @@
         const imageFile = dataURItoFile(dataURI, 'image.jpg', 'image/jpeg');
 
         formData.value.profile = imageFile;
+
       }
 
       const response = await axiosInstance.post('/signup', formData.value, { headers: { 'Content-Type': 'multipart/form-data' } });
@@ -233,18 +216,27 @@
 
       profileError.value = '';
 
+      phoneError.value = '';
+
       console.log('Created user successfully!', response.data);
 
+      //user sign up successful message
       sessionStorage.setItem("successMessage", response.data.message);
 
+      //store token
       sessionStorage.setItem("token", response.data.token);
 
+      //store signup user
       sessionStorage.setItem("user", JSON.stringify(response.data.user));
 
-      router.push('/postList');
+      //redirect to postList
+      router.push('/');
 
+      //reload page
       setTimeout(() => {
+
         window.location.reload();
+
       }, 5);
 
     } catch (error) {
@@ -279,11 +271,17 @@
 
           }
 
+          if (errors.phone) {
+
+            phoneError.value = errors.phone[0] || '';
+
+          }
+
           if (errors.address) {
 
             addressError.value = errors.address[0] || '';
 
-            }
+          }
 
           if (errors.profile) {
 
@@ -293,10 +291,12 @@
 
         }
 
-        }
+      }
+
       console.error(error);
 
     }
+
   }
 
   function clearSingupData() {
@@ -304,11 +304,11 @@
     //reset some formData input values
     formData.value.name = '';
 
-    formData.value.email = ''
+    formData.value.email = '';
 
-    formData.value.password = ''
+    formData.value.password = '';
 
-    formData.value.password_confirmation = ''
+    formData.value.password_confirmation = '';
 
     formData.value.phone = '';
 
@@ -318,10 +318,11 @@
 
     formData.value.type = '1';
 
-    profileInput.value.value  = '';
+    profileInput.value.value = '';
 
     //clear image preview
     userProfileImagePreviewUrl.value = null;
+
   }
 
   function removeSignupImg() {

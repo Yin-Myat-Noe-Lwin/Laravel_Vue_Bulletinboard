@@ -35,6 +35,7 @@ class ChangePasswordRequest extends FormRequest
         return [
             'old_password.required' => 'Current password can\'t be blank.',
             'password.required' => 'New password can\'t be blank.',
+            'password.regex' => 'Password must contain at least one Uppercase letter and one special character.',
             'password.confirmed' => 'New password and New confirm password confirmation is not match.',
             'password_confirmation.required' => 'New confirm password can\'t be blank.'
         ];

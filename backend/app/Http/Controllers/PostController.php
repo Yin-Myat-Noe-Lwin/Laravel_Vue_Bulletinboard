@@ -2,13 +2,13 @@
 
     namespace App\Http\Controllers;
 
-    use App\Models\Post;
+    use Illuminate\Support\Facades\Auth;
+    use Maatwebsite\Excel\Facades\Excel;
     use App\Exports\PostsExport;
     use App\Imports\PostsImport;
-    use Illuminate\Http\Request;
-    use Illuminate\Support\Facades\Auth;
+    use App\Models\Post;
     use App\Http\Resources\PostResource;
-    use Maatwebsite\Excel\Facades\Excel;
+    use Illuminate\Http\Request;
     use App\Http\Requests\CSVImportRequest;
     use App\Http\Requests\PostCreateRequest;
     use App\Http\Requests\PostUpdateRequest;
@@ -20,30 +20,36 @@
          */
         public function index(Request $request)
         {
+            //search params for post data
             $searchQuery = $request->input('search');
 
-            $user = Auth::user();
+             //get logged in user
+             $user = Auth::user();
 
             if ($user->isAdmin()) {
 
-                $query = Post::query();
+                 //if logged in user is Admin, show all posts except deleted posts
+                $postsQuery = Post::query();
 
             } else {
 
-                $query = Post::where('create_user_id', $user->id);
+                //if User, show posts created by loggedin user
+                $postsQuery = Post::where('create_user_id', $user->id);
 
             }
 
             if ($searchQuery) {
 
-                $query->where(function ($q) use ($searchQuery) {
+                //search post data with title and description
+                $postsQuery->where(function ($q) use ($searchQuery) {
                     $q->where('title', 'like', "%$searchQuery%")
                     ->orWhere('description', 'like', "%$searchQuery%");
                 });
 
             }
 
-            $posts = $query->paginate(5);
+            //paginate posts with 5 posts per one page
+            $posts = $postsQuery->paginate(5);
 
             $allPosts = Post::all();
 
@@ -52,20 +58,23 @@
 
         public function showActivePosts(Request $request)
         {
+            //search params for post data
             $searchQuery = $request->input('search');
 
-            $query = Post::where('status', 1);
+            //get posts with active status
+            $postsQuery = Post::where('status', 1);
 
             if ($searchQuery) {
 
-                $query->where(function ($q) use ($searchQuery) {
+                $postsQuery->where(function ($q) use ($searchQuery) {
                     $q->where('title', 'like', "%$searchQuery%")
                     ->orWhere('description', 'like', "%$searchQuery%");
                 });
 
             }
 
-            $posts = $query->paginate(5);
+            //paginate posts with 5 posts per one page
+            $posts = $postsQuery->paginate(5);
 
             $allPosts = Post::all();
 
@@ -77,6 +86,7 @@
          */
         public function store(PostCreateRequest $request)
         {
+            //if flg was confirm, create new post
             if($request->flg == 'confirm') {
 
                 $post = Post::create($request->all());
@@ -101,6 +111,7 @@
          */
         public function update(PostUpdateRequest $request, Post $post)
         {
+            //if flg was confirm, update post
             if($request->flg == 'confirm') {
 
                 $post->update($request->all());
@@ -117,8 +128,10 @@
          */
         public function destroy(Post $post)
         {
+            //get logged in user
             $loggedinUser = Auth::user();
 
+            //change post to inactive status and add logged in user id to deleted user id
             $post->update(['status' => 0 ,
                            'deleted_user_id' => $loggedinUser->id
             ]);
@@ -130,11 +143,13 @@
 
         public function export()
         {
+            //download post data
             return Excel::download(new PostsExport, 'posts.csv');
         }
 
         public function import(CSVImportRequest $request)
         {
+            //import post data
             Excel::import(new PostsImport, $request->file('file')->store('files'));
 
             return response()->json(['message' => 'Posts imported successfully']);

@@ -50,19 +50,16 @@
 <script setup>
 
   import { ref } from 'vue';
-  import axiosInstance from '@/axios.js';
   import { useRoute, useRouter } from 'vue-router';
+  import axiosInstance from '@/axios.js';
 
-  const $route = useRoute()
+  const $route = useRoute();
 
   const userId = $route.params.userId;
+
   const token = $route.params.token;
 
-  console.log(userId)
-
-  console.log(token)
-
-  const router = useRouter()
+  const router = useRouter();
 
   const formData = ref({
     password: '',
@@ -78,36 +75,62 @@
   const tokenError = ref('');
 
   async function resetPassword() {
+
     try {
+
       const response = await axiosInstance.post(`/resetPassword`, formData.value);
+
       passwordError.value = '';
+
       passwordConfirmationError.value = '';
+
       tokenError.value = '';
+
       console.log('Changed password successfully!', response.data);
+
       sessionStorage.setItem("successMessage", response.data.message);
+
+      //redirect to login page
       router.push('/login');
+
     } catch (error) {
+
       if (error.response) {
+
         const { errors } = error.response.data;
+
         if (errors) {
+
           if (errors.password) {
+
             passwordError.value = errors.password[0] || '';
+
           }
+
           if (errors.password_confirmation) {
+
             passwordConfirmationError.value = errors.password_confirmation[0] || '';
+
           }
-        }else {
 
-        tokenError.value = error.response.data.error;
+        } else {
 
-        sessionStorage.setItem('tokenErrorMessage', tokenError.value);
+          tokenError.value = error.response.data.error;
 
-        router.push('/login');
+          //store password reset token error message
+          sessionStorage.setItem('tokenErrorMessage', tokenError.value);
+
+          //redirect to login page
+          router.push('/login');
 
         }
+
       }
+
       console.error(error);
+
     }
+
   }
 
 </script>

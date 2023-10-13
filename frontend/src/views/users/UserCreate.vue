@@ -81,6 +81,7 @@
                       <option value="0">Admin</option>
                       <option value="1">User</option>
                     </select>
+                    <div v-if="typeError" class="text-danger">{{ typeError }}</div>
                   </div>
                   <div class="col-12 col-md-2"></div>
                 </div>
@@ -109,11 +110,13 @@
               </div>
             </div>
             <div class="mb-3 row">
-              <label for="address" class="text-right-label col-12 col-md-4 col-form-label">Address<span class="text-danger">*</span></label>
+              <label for="address" class="text-right-label col-12 col-md-4 col-form-label">Address<span
+                  class="text-danger">*</span></label>
               <div class="col-12 col-md-8">
                 <div class="row">
                   <div class="col-12 col-md-10">
                     <input v-model="formData.address" type="text" class="form-control" id="address" name="address">
+                    <div v-if="addressError" class="text-danger">{{ addressError }}</div>
                   </div>
                   <div class="col-12 col-md-2"></div>
                 </div>
@@ -126,8 +129,8 @@
                 <div class="row">
                   <div class="col-12 col-md-10 preview-img">
                     <font-awesome-icon :icon="['fas', 'circle-xmark']" class="circle-x-btn" @click="removeImg" />
-                    <img :src="userProfileImagePreviewUrl" class="img-fluid rounded signup-img-preview" alt="user-profile-img-preview"
-                      style="width:150px; height:150px" @change="handleImageUpload" />
+                    <img :src="userProfileImagePreviewUrl" class="img-fluid rounded img-preview"
+                      alt="user-profile-img-preview" style="width:150px; height:150px" @change="onFileInputChange" />
                   </div>
                   <div class="col-12 col-md-2"></div>
                 </div>
@@ -140,7 +143,7 @@
                 <div class="row">
                   <div class="col-12 col-md-10">
                     <input class="form-control" type="file" id="profile" name="profile" ref="profileInput"
-                      @change="handleImageUpload">
+                    @change="onFileInputChange">
                     <div v-if="profileError" class="text-danger">{{ profileError }}</div>
                   </div>
                   <div class="col-12 col-md-2"></div>
@@ -188,10 +191,11 @@
 <script setup>
 
   import { ref, onMounted } from 'vue';
-  import axiosInstance from '@/axios.js';
   import { useRouter } from 'vue-router';
   import { useStore } from 'vuex';
+  import axiosInstance from '@/axios.js';
   import { dataURItoFile } from '@/dataUriUtils';
+  import { handleImageUpload  } from '@/imageUtils';
 
   //for route change
   const router = useRouter();
@@ -232,47 +236,29 @@
 
   const profileError = ref('');
 
+  const phoneError = ref('');
+
+  const typeError = ref('');
+
   const profileInput = ref('');
 
   const userProfileImagePreviewUrl = ref(null);
 
   //check and control user input profile image
-  function handleImageUpload(event) {
+  const onFileInputChange = (event) => {
 
-    const imgFile = event.target.files[0];
+    handleImageUpload(event, profileError, userProfileImagePreviewUrl);
 
-    const imgSize = imgFile.size;
-
-    const maxSize = 2 * 1024 * 1024;
-
-    if (imgSize > maxSize) {
-
-      profileError.value = "Image file size must be less than 2MB";
-
-    } else {
-
-      const reader = new FileReader();
-
-      reader.onload = function (e) {
-
-        //if image is ok to use, put it in image preview
-        userProfileImagePreviewUrl.value = e.target.result;
-
-      };
-
-      reader.readAsDataURL(imgFile);
-
-    }
-
-  }
+  };
 
   async function createUser() {
 
     try {
 
-      const dataURI =  userProfileImagePreviewUrl.value;
+      const dataURI = userProfileImagePreviewUrl.value;
 
       if (dataURI) {
+
         //store user input profile image
         sessionStorage.setItem('file', dataURI);
 
@@ -280,6 +266,7 @@
         const imageFile = dataURItoFile(dataURI, 'image.jpg', 'image/jpeg');
 
         formData.value.profile = imageFile;
+
       }
 
       const response = await axiosInstance.post('/users', formData.value, { headers: { 'Content-Type': 'multipart/form-data' } });
@@ -296,11 +283,16 @@
 
       profileError.value = '';
 
+      phoneError.value = '';
+
+      typeError.value = '';
+
       console.log('Created user successfully!', response.data);
 
       //store user input data in vuex persist
       store.dispatch('updateUserData', formData);
 
+      //redirect to user create confirm page
       router.push('/UserCreateConfirm');
 
     } catch (error) {
@@ -343,11 +335,23 @@
 
             addressError.value = errors.address[0] || '';
 
-            }
+          }
 
           if (errors.profile) {
 
             profileError.value = errors.profile[0] || '';
+
+          }
+
+          if (errors.phone) {
+
+            phoneError.value = errors.phone[0] || '';
+
+          }
+
+          if (errors.type) {
+
+            typeError.value = errors.type[0] || '';
 
           }
 
@@ -380,7 +384,7 @@
 
     formData.value.type = '1';
 
-    profileInput.value.value  = '';
+    profileInput.value.value = '';
 
     //clear stored user data
     store.dispatch('deleteUserData');

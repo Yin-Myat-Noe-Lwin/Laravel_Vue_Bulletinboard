@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Support\Str;
-use App\Models\PasswordReset;
 use App\Mail\PasswordResetMail;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use App\Models\User;
+use App\Models\PasswordReset;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Http\Requests\ForgotPasswordRequest;
 
@@ -16,6 +16,7 @@ class PasswordController extends Controller
 
     public function forgotPassword(ForgotPasswordRequest $request)
     {
+        //find user with input email
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
@@ -24,12 +25,14 @@ class PasswordController extends Controller
 
         } else {
 
-            $userName = $user->name;
+            //get user id and user name
             $userId = $user->id;
+
+            $userName = $user->name;
 
             $token = Str::random(64);
 
-            $expiresAt = now()->addMinutes(1);
+            $expiresAt = now()->addMinutes(2);
 
             $passwordReset = PasswordReset::where('email', $request->email)->first();
 
@@ -86,9 +89,12 @@ class PasswordController extends Controller
                                         ->first();
 
         if(!$passwordReset || $passwordReset->expires_at < now()) {
+
             //token expair error
             return response()->json(['error' => 'Password Reset Token Expired.'], 422);
+
         } else {
+
             //change user password
             $user->password = Hash::make($request->password);
 
@@ -98,6 +104,7 @@ class PasswordController extends Controller
             $passwordReset->delete();
 
             return response()->json(['message' => 'Password has been reset.'], 200);
+
         }
     }
 

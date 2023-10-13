@@ -42,11 +42,11 @@
 <script setup>
 
   import { ref } from 'vue';
-  import axiosInstance from '@/axios.js';
   import { useRouter } from "vue-router";
+  import axiosInstance from '@/axios.js';
 
-   //for route change
-   const router = useRouter();
+  //for route change
+  const router = useRouter();
 
   const formData = ref({
     email: ''
@@ -68,8 +68,10 @@
 
       console.log('Forgot password successfully!', response.data);
 
+      //store forgot password success message
       sessionStorage.setItem("successMessage", response.data.message);
 
+      //redirect to login page
       router.push("/login");
 
     } catch (error) {

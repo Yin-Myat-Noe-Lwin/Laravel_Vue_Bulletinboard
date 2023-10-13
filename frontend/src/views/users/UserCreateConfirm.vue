@@ -171,9 +171,9 @@
 <script setup>
 
   import { ref, computed } from 'vue';
-  import axiosInstance from '@/axios.js';
   import { useRouter } from 'vue-router';
   import { useStore } from 'vuex';
+  import axiosInstance from '@/axios.js';
   import { dataURItoFile } from '@/dataUriUtils';
 
   //for route change

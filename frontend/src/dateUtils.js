@@ -4,4 +4,4 @@ export const formatDate = (datetime) => {
 
   return date.toLocaleDateString();
 
-};
+}

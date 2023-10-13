@@ -15,19 +15,19 @@ class LoginController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
-
+            //check if entered email address exits in database
             return response()->json(['error' => 'Email does not exist!'], 422);
-
         }
 
         if (!Hash::check($request->password, $user->password)) {
-
+            //check if entered password is correct or not
             return response()->json(['error' => 'Password is incorrect!'], 422);
-
         }
 
+        //create login token
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        //token expiry date
         $cookie = cookie('token', $token, 60 * 24 * 30 );
 
         return response()->json([
@@ -39,6 +39,7 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
+        //delete token
         $request->user()->currentAccessToken()->delete();
 
         $cookie = cookie()->forget('token');

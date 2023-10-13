@@ -71,8 +71,8 @@
 <script setup>
 
   import { ref } from "vue";
-  import axiosInstance from "@/axios.js";
   import { useRouter } from "vue-router";
+  import axiosInstance from "@/axios.js";
 
   //for route change
   const router = useRouter();
@@ -96,10 +96,7 @@
 
     try {
 
-      const response = await axiosInstance.post(
-        `/users/${user.id}/changePassword`,
-        formData.value
-      );
+      const response = await axiosInstance.post(`/users/${user.id}/changePassword`, formData.value );
 
       currentPasswordError.value = "";
 
@@ -109,6 +106,7 @@
 
       console.log("Changed password successfully!", response.data);
 
+      //redirect to post list
       router.push("/");
 
     } catch (error) {
@@ -144,6 +142,7 @@
       console.error(error);
 
     }
+
   }
 
 </script>

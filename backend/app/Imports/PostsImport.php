@@ -2,13 +2,13 @@
 
 namespace App\Imports;
 
-use App\Models\Post;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
+use App\Models\Post;
 
 class PostsImport implements ToCollection,  WithValidation,  WithHeadingRow
 {
@@ -29,11 +29,11 @@ class PostsImport implements ToCollection,  WithValidation,  WithHeadingRow
 
     public function messages()
     {
-            return [
-                'title.required' => 'Title can\'t be blank.',
-                'title.max' => '255 characters is the maximum allowed.',
-                'description.required' => 'Description can\'t be blank.'
-            ];
+        return [
+            'title.required' => 'Title can\'t be blank.',
+            'title.max' => '255 characters is the maximum allowed.',
+            'description.required' => 'Description can\'t be blank.'
+        ];
     }
 
     public function collection(Collection $rows)

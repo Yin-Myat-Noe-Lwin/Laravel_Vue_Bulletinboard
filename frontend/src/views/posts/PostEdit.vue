@@ -66,9 +66,9 @@
 <script setup>
 
   import { ref, onMounted } from 'vue';
+  import { useStore } from 'vuex';
   import { useRoute, useRouter } from 'vue-router';
   import axiosInstance from '@/axios.js';
-  import { useStore } from 'vuex';
 
   //for route params
   const route = useRoute();
@@ -88,8 +88,6 @@
   //if there is postedit data
   const postEditData = store.getters.getPostEditData;
 
-  console.log(postEditData)
-
   const formData = ref({
     title: '',
     description: '',
@@ -104,10 +102,29 @@
 
   const statusError = ref('');
 
+  onMounted(() => {
+
+    const jsonData = { "postEditData": {} };
+
+    if (!postEditData && Object.keys(jsonData.postEditData).length === 0) {
+
+      console.log("post edit data is null");
+
+      fetchDataAndSetFormData();
+
+    } else {
+
+      fetchStoredEditDataAndSetFormData();
+
+    }
+
+  });
+
   async function updatePost() {
 
     try {
 
+      //remove stored post data
       sessionStorage.removeItem('currentPostData');
 
       const response = await axiosInstance.put(`/posts/${route.params.postID}`, formData.value);
@@ -137,25 +154,33 @@
             titleError.value = errors.title[0] || '';
 
           }
+
           if (errors.description) {
 
             descriptionError.value = errors.description[0] || '';
 
           }
+
           if (errors.status) {
 
             statusError.value = errors.status[0] || '';
 
           }
+
         }
+
       }
+
       console.error(error);
+
     }
+
   }
 
   function clearPostData() {
 
-    currentPostData.value = JSON.parse(sessionStorage.getItem('currentPostData'))
+    //reset some post data
+    currentPostData.value = JSON.parse(sessionStorage.getItem('currentPostData'));
 
     formData.value.title = currentPostData.value.title;
 
@@ -165,46 +190,51 @@
 
     store.dispatch('deletePostEditData')
 
-    }
+  }
 
   const fetchDataAndSetFormData = () => {
-    axiosInstance.get(`/posts/${route.params.postID}`)
-      .then((response) => {
-          formData.value = response.data.post;
 
-          sessionStorage.setItem('currentPostData', JSON.stringify(response.data.post));
-    })
-        .catch((error) => console.log(error));
+    //if there is no stored postEditData
+    axiosInstance.get(`/posts/${route.params.postID}`).then((response) => {
+
+        formData.value = response.data.post;
+
+        //store post data
+        sessionStorage.setItem('currentPostData', JSON.stringify(response.data.post));
+
+      })
+
+    .catch((error) => console.log(error));
+
   }
 
   const fetchStoredEditDataAndSetFormData = () => {
+
+    //if there is stored postEditData, show it in formData
     formData.value = postEditData;
+
   }
 
-  onMounted(() => {
-    const jsonData = { "postEditData": {} };
-    if (!postEditData &&  Object.keys(jsonData.postEditData).length === 0)  {
-      console.log("post edit data is null")
-      fetchDataAndSetFormData();
-    } else {
-      console.log("not null")
-      fetchStoredEditDataAndSetFormData();
-    }
-  });
-
   const removeDataFromSessionStorage = () => {
+
     store.dispatch('deletePostEditData');
+
   };
 
   const beforeRouteLeave = () => {
 
+    //if to route is not post edit confirm page, removed store data
     router.beforeEach((to, from, next) => {
+
       if (from.path.toLowerCase().startsWith('/postedit/') && !to.path.toLowerCase().startsWith('/posteditconfirm/')) {
-        alert('remove')
+
         removeDataFromSessionStorage();
+
       }
+
       next();
-  });
+
+    });
 
   };
 

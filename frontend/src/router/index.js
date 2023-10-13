@@ -1,28 +1,27 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router';
 import axiosInstance from '@/axios.js';
-import NotFound from '../views/common/NotFound.vue'
-import HomeView from '../views/HomeView.vue'
-import UserList from '../views/users/UserList.vue'
-import UserCreate from '../views/users/UserCreate.vue'
-import UserCreateConfirm from '../views/users/UserCreateConfirm.vue'
-import UserProfile from '../views/users/UserProfile.vue'
-import UserEdit from '../views/users/UserEdit.vue'
-import PostList from '../views/posts/PostList.vue'
-import PostCreate from '../views/posts/PostCreate.vue'
-import PostCreateConfirm from '../views/posts/PostCreateConfirm.vue'
-import PostEdit from '../views/posts/PostEdit.vue'
-import PostEditConfirm from '../views/posts/PostEditConfirm.vue'
-import ForgotPassword from '../views/auth/ForgotPassword.vue'
-import ChangePassword from '../views/auth/ChangePassword.vue'
-import ResetPassword from '../views/auth/ResetPassword.vue'
-import AppSignup from '../views/auth/AppSignup.vue'
-import AppLogin from '../views/auth/AppLogin.vue'
-import UploadCSV from '../views/common/UploadCSV.vue'
+import NotFound from '../views/common/NotFound.vue';
+import UserList from '../views/users/UserList.vue';
+import UserCreate from '../views/users/UserCreate.vue';
+import UserCreateConfirm from '../views/users/UserCreateConfirm.vue';
+import UserProfile from '../views/users/UserProfile.vue';
+import UserEdit from '../views/users/UserEdit.vue';
+import PostList from '../views/posts/PostList.vue';
+import PostCreate from '../views/posts/PostCreate.vue';
+import PostCreateConfirm from '../views/posts/PostCreateConfirm.vue';
+import PostEdit from '../views/posts/PostEdit.vue';
+import PostEditConfirm from '../views/posts/PostEditConfirm.vue';
+import ForgotPassword from '../views/auth/ForgotPassword.vue';
+import ChangePassword from '../views/auth/ChangePassword.vue';
+import ResetPassword from '../views/auth/ResetPassword.vue';
+import AppSignup from '../views/auth/AppSignup.vue';
+import AppLogin from '../views/auth/AppLogin.vue';
+import UploadCSV from '../views/common/UploadCSV.vue';
 
 //get current logged in user
 const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user')) || null;
 
-const router = createRouter({
+const router = createRouter ({
 
   history: createWebHistory(import.meta.env.BASE_URL),
 
@@ -36,8 +35,43 @@ const router = createRouter({
 
     {
       path: '/',
-      name: 'home',
-      component: HomeView
+      name: 'PostList',
+      component: PostList
+    },
+
+    {
+      path: '/PostCreate',
+      name: 'PostCreate',
+      component: PostCreate,
+      meta: { requiresAuth: true }
+    },
+
+    {
+      path: '/PostCreateConfirm',
+      name: 'PostCreateConfirm',
+      component: PostCreateConfirm,
+      meta: { requiresAuth: true }
+    },
+
+    {
+      path: '/PostEdit/:postID',
+      name: 'PostEdit',
+      component: PostEdit,
+      meta: { requiresAuth: true }
+    },
+
+    {
+      path: '/PostEditConfirm/:postID',
+      name: 'PostEditConfirm',
+      component: PostEditConfirm,
+      meta: { requiresAuth: true }
+    },
+
+    {
+      path: '/UploadCSV',
+      name: 'UploadCSV',
+      component: UploadCSV,
+      meta: { requiresAuth: true }
     },
 
     {
@@ -107,49 +141,10 @@ const router = createRouter({
       name: 'login',
       component: AppLogin,
       beforeEnter: requireAuth
-    },
-
-    {
-      path: '/PostList',
-      name: 'PostList',
-      component: PostList
-    },
-
-    {
-      path: '/PostCreate',
-      name: 'PostCreate',
-      component: PostCreate,
-      meta: { requiresAuth: true }
-    },
-
-    {
-      path: '/PostCreateConfirm',
-      name: 'PostCreateConfirm',
-      component: PostCreateConfirm,
-      meta: { requiresAuth: true }
-    },
-
-    {
-      path: '/PostEdit/:postID',
-      name: 'PostEdit',
-      component: PostEdit,
-      meta: { requiresAuth: true }
-    },
-
-    {
-      path: '/PostEditConfirm/:postID',
-      name: 'PostEditConfirm',
-      component: PostEditConfirm,
-      meta: { requiresAuth: true }
-    },
-
-    {
-      path: '/UploadCSV',
-      name: 'UploadCSV',
-      component: UploadCSV
     }
 
   ]
+
 })
 
 router.beforeEach(async (to, from, next) => {
@@ -188,6 +183,7 @@ router.beforeEach(async (to, from, next) => {
     const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user')) || null;
 
     return user !== null;
+
   }
 
   function requireAuth(to, from, next) {
@@ -201,6 +197,7 @@ router.beforeEach(async (to, from, next) => {
       next({ name: 'home' });
 
     }
+
   }
 
-export default router
+export default router;

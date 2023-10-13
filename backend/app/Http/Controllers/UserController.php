@@ -2,16 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
-use App\Exports\UsersExport;
-use Illuminate\Http\Request;
-use App\Http\Resources\UserResource;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
+use App\Models\User;
+use Illuminate\Http\Request;
+use App\Http\Resources\UserResource;
 use App\Http\Requests\UserCreateRequest;
 use App\Http\Requests\UserUpdateRequest;
 use App\Http\Requests\ChangePasswordRequest;
@@ -22,7 +20,6 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-
     public function index(Request $request)
     {
         //search params for user data
@@ -34,56 +31,61 @@ class UserController extends Controller
 
         $searchToDateQuery = $request->input('searchToDate');
 
-        $usersQuery = User::query();
+         //get logged in user
+         $user = Auth::user();
 
-        //if admin, show all users expect deleted, if user, show users created by him or herself
-        if (Auth::user()->isAdmin()) {
+        if ($user->isAdmin()) {
 
-           //show all Users
+           //if logged in user is Admin, show all users except deleted users
+           $usersQuery = User::query();
 
         } else {
 
-            //show users created by loggedin user
-            $user = Auth::user();
-
-            $usersQuery->where('create_user_id', $user->id);
+            //if User, show users created by loggedin user
+            $usersQuery = User::where('create_user_id', $user->id);
 
         }
 
-        //search with name,email, created date
-        $usersQuery->when($searchNameQuery, function ($query) use ($searchNameQuery) {
+        if($searchNameQuery || $searchEmailQuery || $searchFromDateQuery || $searchToDateQuery ) {
 
-            return $query->where('name', 'like', "%$searchNameQuery%");
+            //search user data with name,email, created_at date
+            $usersQuery->when($searchNameQuery, function ($query) use ($searchNameQuery) {
 
-        });
+                return $query->where('name', 'like', "%$searchNameQuery%");
 
-        $usersQuery->when($searchEmailQuery, function ($query) use ($searchEmailQuery) {
+            });
 
-            return $query->where('email', 'like', "%$searchEmailQuery%");
+            $usersQuery->when($searchEmailQuery, function ($query) use ($searchEmailQuery) {
 
-        });
+                return $query->where('email', 'like', "%$searchEmailQuery%");
 
-        $usersQuery->when($searchFromDateQuery, function ($query) use ($searchFromDateQuery) {
+            });
 
-            $formattedFromDate = date('Y-m-d 00:00:00', strtotime($searchFromDateQuery));
+            $usersQuery->when($searchFromDateQuery, function ($query) use ($searchFromDateQuery) {
 
-            return $query->whereDate('created_at', '>=', $formattedFromDate($searchFromDateQuery) );
+                return $query->whereDate('created_at', '>=',date('Y-m-d 00:00:00', strtotime($searchFromDateQuery)) );
 
-        });
+            });
 
-        $usersQuery->when($searchToDateQuery, function ($query) use ($searchToDateQuery) {
+            $usersQuery->when($searchToDateQuery, function ($query) use ($searchToDateQuery) {
 
-            $formattedToDate = date('Y-m-d 00:00:00', strtotime($searchToDateQuery));
+                return $query->whereDate('created_at', '<=', date('Y-m-d 00:00:00', strtotime($searchToDateQuery)));
 
-            return $query->whereDate('created_at', '<=', $formattedToDate($searchToDateQuery));
+            });
 
-        });
+            $usersQuery->when($searchFromDateQuery && $searchToDateQuery, function ($query) use ($searchFromDateQuery, $searchToDateQuery) {
+                $formattedFromDate = date('Y-m-d 00:00:00', strtotime($searchFromDateQuery));
+                $formattedToDate = date('Y-m-d 23:59:59', strtotime($searchToDateQuery));
+                return $query->whereBetween('created_at', [$formattedFromDate, $formattedToDate]);
+            });
 
+        }
+
+        //paginate users with 5 users per one page
         $users = $usersQuery->paginate(5);
 
         $allUsers = User::all();
 
-        //allUsers for user data, users for pagination
         return response()->json(['users' => $users, 'allUsers' => $allUsers]);
     }
 
@@ -91,13 +93,16 @@ class UserController extends Controller
     {
         //search params for user data
         $searchNameQuery = $request->input('searchName');
+
         $searchEmailQuery = $request->input('searchEmail');
+
         $searchFromDateQuery = $request->input('searchFromDate');
+
         $searchToDateQuery = $request->input('searchToDate');
 
         $usersQuery = User::query();
 
-        //search with name,email, created date
+        //search with name,email, created_at date
         $usersQuery->when($searchNameQuery, function ($query) use ($searchNameQuery) {
 
             return $query->where('name', 'like', "%$searchNameQuery%");
@@ -122,17 +127,23 @@ class UserController extends Controller
 
         });
 
+        $usersQuery->when($searchFromDateQuery && $searchToDateQuery, function ($query) use ($searchFromDateQuery, $searchToDateQuery) {
+            $formattedFromDate = date('Y-m-d 00:00:00', strtotime($searchFromDateQuery));
+            $formattedToDate = date('Y-m-d 23:59:59', strtotime($searchToDateQuery));
+            return $query->whereBetween('created_at', [$formattedFromDate, $formattedToDate]);
+        });
+
+        //paginate users with 5 users per one page
         $users = $usersQuery->paginate(5);
 
         $allUsers = User::all();
 
-        //allUsers for user data, users for pagination
         return response()->json(['users' => $users, 'allUsers' => $allUsers]);
     }
 
-    //register when not logged in
     public function signup(SignupRequest $request)
     {
+        //register when not logged in
         $user = User::create($request->all());
 
         $path = storage_path('app/public/images/');
@@ -159,13 +170,16 @@ class UserController extends Controller
 
         }
 
+        //after create user then update create_user_id and updated_user_id with newly created user id
         $user->update([
             'create_user_id' => $user->id,
             'updated_user_id' => $user->id,
         ]);
 
+        //create token
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        //token expiry date
         $cookie = cookie('token', $token, 60 * 24 * 30 );
 
         return response()->json([
@@ -181,7 +195,7 @@ class UserController extends Controller
     public function store(UserCreateRequest $request)
     {
         if($request->flg == 'confirm') {
-
+            //if flg was confirm, create new user
             $user = User::create($request->all());
 
             $path = storage_path('app/public/images/');
@@ -222,48 +236,6 @@ class UserController extends Controller
         return response()->json(['user' => new UserResource($user) ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UserUpdateRequest $request, User $user)
-    {
-        if ($request->hasFile('profile')) {
-            Storage::delete('public/images/' . $user->profile);
-            $file = $request->file('profile');
-            $randomFileName = Str::random(20);
-            $fileName = $randomFileName. '.'. $file->getClientOriginalExtension();
-            $file->storeAs('public/images', $fileName);
-            $user->update(['profile' => $fileName]);
-        }
-
-        $user->update(Arr::except($request->except('profile'), ['profile']));
-
-        return response()->json(['message' => 'User updated successfully','user' =>  new UserResource($user)]);
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(User $user)
-    {
-        if ($user->profile != null) {
-            Storage::delete('public/images/' . $user->profile);
-        }
-
-        $loggedinUser = Auth::user();
-
-        $user->update(['deleted_user_id' => $loggedinUser->id]);
-
-        $user->delete();
-
-        return response()->json(['message' => 'User deleted successfully']);
-    }
-
-    public function export()
-    {
-        return Excel::download(new UsersExport, 'users.xlsx');
-    }
-
     public function getUserImage(User $user)
     {
         $path = 'public/images/' . $user->profile;
@@ -281,8 +253,60 @@ class UserController extends Controller
         }
     }
 
-    public function changePassword(ChangePasswordRequest $request, User $user) {
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(UserUpdateRequest $request, User $user)
+    {
+        //change user profile image
+        if ($request->hasFile('profile')) {
 
+            Storage::delete('public/images/' . $user->profile);
+
+            $file = $request->file('profile');
+
+            $randomFileName = Str::random(20);
+
+            $fileName = $randomFileName. '.'. $file->getClientOriginalExtension();
+
+            $file->storeAs('public/images', $fileName);
+
+            $user->update(['profile' => $fileName]);
+
+        }
+
+        $user->update(Arr::except($request->except('profile'), ['profile']));
+
+        return response()->json(['message' => 'User updated successfully','user' =>  new UserResource($user)]);
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(User $user)
+    {
+        //delete user profile image
+        if ($user->profile != null) {
+
+            Storage::delete('public/images/' . $user->profile);
+
+        }
+
+        //current logged in user
+        $loggedinUser = Auth::user();
+
+        //add logged in user id into deleted_user_id
+        $user->update(['deleted_user_id' => $loggedinUser->id]);
+
+        //delete user
+        $user->delete();
+
+        return response()->json(['message' => 'User deleted successfully']);
+    }
+
+    public function changePassword(ChangePasswordRequest $request, User $user)
+    {
+        //update user password
         $user->password = Hash::make($request->password);
 
         $user->save();
