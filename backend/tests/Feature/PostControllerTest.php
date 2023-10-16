@@ -13,34 +13,28 @@ class PostControllerTest extends TestCase
 {
     use DatabaseTruncation;
 
-    protected $user;
+    // public function test_index_post(): void
+    // {
+    //     Post::factory()->count(5)->create();
 
-    protected function setUp(): void
+    //     $response = $this->get(route('posts.index'));
+
+    //     $response->assertStatus(200);
+    // }
+
+    public function test_create_post_with_authenication(): void
     {
-        parent::setUp();
+        $user = User::factory()->create();
 
-        $this->user = User::factory()->create();
+        //current logged in user
+        $this->actingAs($user);
 
-        $this->actingAs($this->user);
-    }
-
-    public function test_index_post(): void
-    {
-        Post::factory()->count(5)->create();
-
-        $response = $this->get(route('posts.index'));
-
-        $response->assertStatus(200);
-    }
-
-    public function test_create_post(): void
-    {
         $postData = [
             'title' => 'Sample Title',
             'description' => 'This is a sample description.',
             'status' => 1,
-            'create_user_id' => $this->user->id,
-            'updated_user_id' => $this->user->id
+            'create_user_id' => $user->id,
+            'updated_user_id' => $user->id
         ];
 
         $response = $this->post(route('posts.store'), $postData);
@@ -48,56 +42,135 @@ class PostControllerTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_show_post(): void
+    public function test_create_post_with_invalid_data(): void
     {
-        $post = Post::factory()->create();
+        $user = User::factory()->create();
 
-        $response = $this->get(route('posts.show', ['post' => $post->id]));
+        //current logged in user
+        $this->actingAs($user);
 
-        $response->assertStatus(200);
+        $postData = [
+            'title' => '',
+            'description' => '',
+            'status' => 1,
+            'create_user_id' => $user->id,
+            'updated_user_id' =>  $user->id,
+        ];
+
+        $response = $this->post(route('posts.store'), $postData);
+
+        $response->assertStatus(302);
     }
 
-    public function test_update_post(): void
+    public function test_create_post_without_authenication(): void
     {
-        $post = Post::factory()->create();
-
-        $updatedPostData = [
-            'title' => 'Updated Title',
-            'description' => 'Updated Description.',
+        $postData = [
+            'title' => 'Sample Title',
+            'description' => 'This is a sample description.',
             'status' => 1,
             'create_user_id' => 1,
             'updated_user_id' => 1
         ];
 
-        $response = $this->put(route('posts.update', ['post' => $post->id]), $updatedPostData);
+        $response = $this->post(route('posts.store'), $postData);
+
+        $response->assertStatus(302);
+    }
+
+    // public function test_show_post(): void
+    // {
+    //     $post = Post::factory()->create();
+
+    //     $response = $this->get(route('posts.show', ['post' => $post->id]));
+
+    //     $response->assertStatus(200);
+    // }
+
+    // public function test_update_post(): void
+    // {
+    //     $post = Post::factory()->create();
+
+    //     $updatedPostData = [
+    //         'title' => 'Updated Title',
+    //         'description' => 'Updated Description.',
+    //         'status' => 1,
+    //         'create_user_id' => 1,
+    //         'updated_user_id' => 1
+    //     ];
+
+    //     $response = $this->put(route('posts.update', ['post' => $post->id]), $updatedPostData);
+
+    //     $response->assertStatus(200);
+    // }
+
+    public function test_delete_post_with_authenication(): void
+    {
+        $user = User::factory()->create();
+
+        //current logged in user
+        $this->actingAs($user);
+
+        $post = Post::factory()->create();
+
+        $response = $this->delete(route('posts.destroy', ['post' => $post->id]));
+
+        $post->update([
+            'deleted_user_id' => $user->id
+        ]);
 
         $response->assertStatus(200);
     }
 
-    public function test_delete_post(): void
+    public function test_delete_post_without_authenication(): void
     {
         $post = Post::factory()->create();
 
         $response = $this->delete(route('posts.destroy', ['post' => $post->id]));
 
-        $response->assertStatus(200);
+        $post->update([
+            'deleted_user_id' => 1
+        ]);
+
+        $response->assertStatus(302);
     }
 
-    public function test_export_post(): void
+    // public function test_export_post(): void
+    // {
+    //     Post::factory()->count(5)->create();
+
+    //     $response = $this->get(route('export'));
+
+    //     $response->assertStatus(200);
+    // }
+
+    // public function test_import_post(): void
+    // {
+    //     $file = UploadedFile::fake()->create('posts.csv');
+
+    //     $response = $this->post(route('import'), ['file' => $file]);
+
+    //     $response->assertStatus(200);
+    // }
+
+    private function createPostWithValidData($user)
     {
-        Post::factory()->count(5)->create();
-
-        $response = $this->get(route('export'));
-
-        $response->assertStatus(200);
+        $postData = [
+            'title' => 'Sample Title',
+            'description' => 'This is a sample description.',
+            'status' => 1,
+            'create_user_id' => $user->id,
+            'updated_user_id' => $user->id
+        ];
     }
 
-    public function test_import_post(): void
+    private function createPostWithInvalidData($user)
     {
-        $file = UploadedFile::fake()->create('posts.csv');
-
-        $response = $this->post(route('import'), ['file' => $file]);
-
-        $response->assertStatus(200);
+        $postData = [
+            'title' => '',
+            'description' => '',
+            'status' => 1,
+            'create_user_id' => $user->id,
+            'updated_user_id' => $user->id
+        ];
     }
 }

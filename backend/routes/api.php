@@ -48,7 +48,7 @@ Route::post('/signup', [UserController::class, 'signup'])->name('signup');
 Route::get('/showAllUsers', [UserController::class, 'showAllUsers'])->name('showAllUsers');
 
 //login user
-Route::post('/login', [LoginController::class, 'login']);
+Route::post('/login', [LoginController::class, 'login'])->name('login');
 
 //password reset
 Route::post('/forgotPassword', [PasswordController::class, 'forgotPassword']);
